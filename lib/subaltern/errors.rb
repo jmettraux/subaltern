@@ -20,18 +20,49 @@
 # THE SOFTWARE.
 #++
 
-require 'ruby_parser'
-
-require 'subaltern/version'
-require 'subaltern/errors'
-require 'subaltern/evaluator'
-
 
 module Subaltern
 
-  def self.eval(source, vars={})
+  class BlacklistedMethodError < RuntimeError
 
-    eval_tree(Context.new(nil, vars), RubyParser.new.parse(source).to_a)
+    attr_reader :klass, :method
+
+    def initialize(klass, meth)
+      @klass = klass
+      @method = meth
+      super("blacklisted : #meth (in this case : #{klass.inspect})")
+    end
+  end
+
+  class NonWhitelistedClassError < RuntimeError
+
+    attr_reader :klass
+
+    def initialize(klass)
+      @klass = klass
+      super("not whitelisted : #{klass.inspect}")
+    end
+  end
+
+  class NonWhitelistedMethodError < RuntimeError
+
+    attr_reader :klass, :method
+
+    def initialize(klass, meth)
+      @klass = klass
+      @method = meth
+      super("not whitelisted : #{klass.inspect}##{meth}")
+    end
+  end
+
+  class UndefinedVariableError < RuntimeError
+
+    attr_reader :variable_name
+
+    def initialize(varname)
+      @variable_name = varname
+      super("undefined variable #{varname.inspect}")
+    end
   end
 end
 
