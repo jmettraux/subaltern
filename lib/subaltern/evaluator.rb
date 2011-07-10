@@ -133,6 +133,18 @@ tap to_a to_enum to_f to_i to_s type |
     tree[1]
   end
 
+  def self.eval_dstr(context, tree)
+
+    tree[1..-1].collect { |t|
+      t.is_a?(String) ? t : eval_tree(context, t)
+    }.join
+  end
+
+  def self.eval_evstr(context, tree)
+
+    eval_tree(context, tree[1])
+  end
+
   def self.eval_array(context, tree)
 
     tree[1..-1].collect { |t| eval_tree(context, t) }
