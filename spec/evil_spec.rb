@@ -43,14 +43,14 @@ describe Subaltern do
 
       lambda {
         Subaltern.eval('ENV')
-      }.should raise_error(Subaltern::ConstantAccessError)
+      }.should raise_error(Subaltern::AccessError)
     end
 
     it 'raises' do
 
       lambda {
         Subaltern.eval('File::Utils')
-      }.should raise_error(Subaltern::ConstantAccessError)
+      }.should raise_error(Subaltern::AccessError)
     end
   end
 
@@ -60,7 +60,7 @@ describe Subaltern do
 
       lambda {
         Subaltern.eval('ENV["HOME"]')
-      }.should raise_error(Subaltern::ConstantAccessError)
+      }.should raise_error(Subaltern::AccessError)
     end
   end
 
@@ -70,7 +70,17 @@ describe Subaltern do
 
       lambda {
         Subaltern.eval('$nada')
-      }.should raise_error(Subaltern::GlobalVariableAccessError)
+      }.should raise_error(Subaltern::AccessError)
+    end
+  end
+
+  describe 'backquoting' do
+
+    it 'raises' do
+
+      lambda {
+        Subaltern.eval('`ls -al`')
+      }.should raise_error(Subaltern::AccessError)
     end
   end
 end

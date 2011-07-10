@@ -145,6 +145,11 @@ tap to_a to_enum to_f to_i to_s type |
     eval_tree(context, tree[1])
   end
 
+  def self.eval_xstr(context, tree)
+
+    raise AccessError.new("no backquoting allowed (#{tree[1]})")
+  end
+
   def self.eval_array(context, tree)
 
     tree[1..-1].collect { |t| eval_tree(context, t) }
@@ -195,17 +200,17 @@ tap to_a to_enum to_f to_i to_s type |
 
   def self.eval_gvar(context, tree)
 
-    raise GlobalVariableAccessError.new(tree[1].to_s)
+    raise AccessError.new("no global variables (#{tree[1]})")
   end
 
   def self.eval_const(context, tree)
 
-    raise ConstantAccessError.new(tree[1].to_s)
+    raise AccessError.new("no access to constants (#{tree[1]})")
   end
 
   def self.eval_colon2(context, tree)
 
-    raise ConstantAccessError.new(tree[1].to_s)
+    raise AccessError.new("no access to constants (#{tree[1]})")
   end
 
   def self.eval_iter(context, tree)
