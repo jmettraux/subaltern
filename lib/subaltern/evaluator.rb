@@ -30,14 +30,8 @@ module Subaltern
     send("eval_#{tree.first}", tree)
   end
 
-  def self.eval_false(tree)
-
-    false
-  end
-
-  def self.eval_true(tree)
-
-    true
+  %w[ false true nil ].each do |key|
+    instance_eval %{ def eval_#{key}(tree); #{key}; end }
   end
 
   def self.eval_lit(tree)
@@ -48,6 +42,16 @@ module Subaltern
   def self.eval_str(tree)
 
     tree[1]
+  end
+
+  def self.eval_array(tree)
+
+    tree[1..-1].collect { |t| eval_tree(t) }
+  end
+
+  def self.eval_hash(tree)
+
+    Hash[*eval_array(tree)]
   end
 
   def self.eval_call(tree)
