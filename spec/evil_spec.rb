@@ -10,33 +10,57 @@ end
 
 describe Subaltern do
 
-  context 'evil' do
+  #describe '__FILE__' do
+  #  it 'raises an error' do
+  #    p Subaltern.eval('__FILE__')
+  #  end
+  #end
 
-    #describe '__FILE__' do
-    #  it 'raises an error' do
-    #    p Subaltern.eval('__FILE__')
-    #  end
-    #end
+  describe "''.eval('1 + 1')" do
 
-    describe "''.eval('1 + 1')" do
+    it 'raises' do
 
-      it 'raises' do
+      lambda {
+        Subaltern.eval("''.eval('1 + 1')")
+      }.should raise_error(Subaltern::NonWhitelistedMethodError)
+    end
+  end
 
-        lambda {
-          Subaltern.eval("''.eval('1 + 1')")
-        }.should raise_error(Subaltern::NonWhitelistedMethodError)
-      end
+  describe 'calls on non-whitelisted classes' do
+
+    it 'raises' do
+
+      lambda {
+        Subaltern.eval("'File'.constantize.read('#{__FILE__}')")
+      #}.should raise_error(Subaltern::NonWhitelistedClassError)
+      }.should raise_error(Subaltern::NonWhitelistedMethodError)
+    end
+  end
+
+  describe 'a constant lookup' do
+
+    it 'raises' do
+
+      lambda {
+        Subaltern.eval('ENV')
+      }.should raise_error(Subaltern::ConstantAccessError)
     end
 
-    describe 'calls on non-whitelisted classes' do
+    it 'raises' do
 
-      it 'raises' do
+      lambda {
+        Subaltern.eval('File::Utils')
+      }.should raise_error(Subaltern::ConstantAccessError)
+    end
+  end
 
-        lambda {
-          Subaltern.eval("'File'.constantize.read('#{__FILE__}')")
-        #}.should raise_error(Subaltern::NonWhitelistedClassError)
-        }.should raise_error(Subaltern::NonWhitelistedMethodError)
-      end
+  describe 'a call on a constant' do
+
+    it 'raises' do
+
+      lambda {
+        Subaltern.eval('ENV["HOME"]')
+      }.should raise_error(Subaltern::ConstantAccessError)
     end
   end
 end

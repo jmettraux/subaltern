@@ -28,6 +28,7 @@ module Subaltern
     attr_reader :klass, :method
 
     def initialize(klass, meth)
+
       @klass = klass
       @method = meth
       super("blacklisted : #meth (in this case : #{klass.inspect})")
@@ -39,6 +40,7 @@ module Subaltern
     attr_reader :klass
 
     def initialize(klass)
+
       @klass = klass
       super("not whitelisted : #{klass.inspect}")
     end
@@ -49,6 +51,7 @@ module Subaltern
     attr_reader :klass, :method
 
     def initialize(klass, meth)
+
       @klass = klass
       @method = meth
       super("not whitelisted : #{klass.inspect}##{meth}")
@@ -60,8 +63,20 @@ module Subaltern
     attr_reader :variable_name
 
     def initialize(varname)
+
       @variable_name = varname
       super("undefined variable #{varname.inspect}")
+    end
+  end
+
+  class ConstantAccessError < RuntimeError
+
+    attr_reader :constant
+
+    def initialize(constant)
+
+      @constant = constant
+      super("access to constants forbidden (#{constant})")
     end
   end
 end

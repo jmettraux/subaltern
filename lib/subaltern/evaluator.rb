@@ -181,6 +181,16 @@ tap to_a to_enum to_f to_i to_s type |
     context[tree[1].to_s]
   end
 
+  def self.eval_const(context, tree)
+
+    raise ConstantAccessError.new(tree[1].to_s)
+  end
+
+  def self.eval_colon2(context, tree)
+
+    raise ConstantAccessError.new(tree[1].to_s)
+  end
+
   def self.eval_iter(context, tree)
 
     p tree
