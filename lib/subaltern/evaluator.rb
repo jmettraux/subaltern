@@ -23,11 +23,40 @@
 
 module Subaltern
 
+  # The entry point.
+  #
   def self.eval_tree(tree)
 
-    p tree
+    send("eval_#{tree.first}", tree)
+  end
 
-    tree
+  def self.eval_false(tree)
+
+    false
+  end
+
+  def self.eval_true(tree)
+
+    true
+  end
+
+  def self.eval_lit(tree)
+
+    tree[1]
+  end
+
+  def self.eval_str(tree)
+
+    tree[1]
+  end
+
+  def self.eval_call(tree)
+
+    target = eval_tree(tree[1])
+    method = tree[2]
+    args = tree[3][1..-1].collect { |t| eval_tree(t) }
+
+    target.send(method, *args)
   end
 end
 
