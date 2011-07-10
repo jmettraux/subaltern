@@ -63,5 +63,15 @@ describe Subaltern do
       }.should raise_error(Subaltern::ConstantAccessError)
     end
   end
+
+  describe 'a global variable lookup' do
+
+    it 'raises' do
+
+      lambda {
+        Subaltern.eval('$nada')
+      }.should raise_error(Subaltern::GlobalVariableAccessError)
+    end
+  end
 end
 

@@ -69,6 +69,17 @@ module Subaltern
     end
   end
 
+  class GlobalVariableAccessError < RuntimeError
+
+    attr_reader :variable
+
+    def initialize(variable)
+
+      @variable = variable
+      super("access to global variables forbidden (#{variable})")
+    end
+  end
+
   class ConstantAccessError < RuntimeError
 
     attr_reader :constant
