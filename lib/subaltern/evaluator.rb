@@ -57,6 +57,17 @@ instance_of? integer? is_a? kind_of? modulo next nil? nonzero? object_id odd?
 ord prec prec_f prec_i pred quo remainder respond_to? round size step succ tap
 times to_a to_enum to_f to_i to_int to_s to_sym truncate type upto zero? | ~
     ],
+    MatchData => %[
+[]
+    ],
+    NilClass => %[
+& == === =~ ^ __id__ class clone display dup enum_for eql? equal? hash
+id inspect instance_of? is_a? kind_of? nil? object_id respond_to?
+tap to_a to_enum to_f to_i to_s type |
+    ],
+    Regexp => %w[
+match
+    ],
     String => %w[
 % * + < << <= <=> == === =~ > >= [] []= __id__
 all? any? between? bytes bytesize capitalize capitalize! casecmp center chars
@@ -73,11 +84,6 @@ rstrip! scan select size slice slice! sort sort_by split squeeze squeeze!
 start_with? strip strip! sub sub! succ succ! sum swapcase swapcase! take
 take_while tap to_a to_enum to_f to_i to_s to_str to_sym tr tr! tr_s tr_s!
 type unpack upcase upcase! upto zip
-    ],
-    NilClass => %[
-& == === =~ ^ __id__ class clone display dup enum_for eql? equal? hash
-id inspect instance_of? is_a? kind_of? nil? object_id respond_to?
-tap to_a to_enum to_f to_i to_s type |
     ]
   }
 

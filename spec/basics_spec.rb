@@ -61,5 +61,23 @@ describe Subaltern do
       }).should == 2
     end
   end
+
+  describe 'using regular expressions' do
+
+    it 'is OK' do
+
+      Subaltern.eval(%{
+        /abc/.match('d')
+      }).should == nil
+
+      Subaltern.eval(%{
+        /abc/.match('myabcde')
+      }).class.should == MatchData
+
+      Subaltern.eval(%{
+        /(abc)/.match('abc')[1]
+      }).should == 'abc'
+    end
+  end
 end
 
