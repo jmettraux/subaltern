@@ -57,7 +57,23 @@ instance_of? integer? is_a? kind_of? modulo next nil? nonzero? object_id odd?
 ord prec prec_f prec_i pred quo remainder respond_to? round size step succ tap
 times to_a to_enum to_f to_i to_int to_s to_sym truncate type upto zero? | ~
     ],
-    String => %w[ length ],
+    String => %w[
+% * + < << <= <=> == === =~ > >= [] []= __id__
+all? any? between? bytes bytesize capitalize capitalize! casecmp center chars
+chomp chomp! chop chop! class clone collect concat count crypt cycle delete
+delete! detect display downcase downcase! drop drop_while dump dup
+each each_byte each_char each_cons each_line each_slice each_with_index empty?
+end_with? entries enum_cons enum_for enum_slice enum_with_index eql? equal?
+find find_all find_index first grep group_by gsub gsub! hash hex id include?
+index inject insert inspect instance_of? intern is_a? kind_of? length lines
+ljust lstrip lstrip! map match max max_by member? min min_by minmax minmax_by
+next next! nil? none? object_id oct one? partition reduce reject replace
+respond_to? reverse reverse! reverse_each rindex rjust rpartition rstrip
+rstrip! scan select size slice slice! sort sort_by split squeeze squeeze!
+start_with? strip strip! sub sub! succ succ! sum swapcase swapcase! take
+take_while tap to_a to_enum to_f to_i to_s to_str to_sym tr tr! tr_s tr_s!
+type unpack upcase upcase! upto zip
+    ],
     NilClass => %[
 & == === =~ ^ __id__ class clone display dup enum_for eql? equal? hash
 id inspect instance_of? is_a? kind_of? nil? object_id respond_to?
