@@ -23,9 +23,37 @@
 
 module Subaltern
 
+  WHITELIST = {
+    Fixnum => %w[ + ],
+    String => %w[ length ]
+  }
+
+  class NonWhitelistedClassError < RuntimeError
+
+    attr_reader :klass
+
+    def initialize(klass)
+      @klass = klass
+      super("not whitelisted : #{klass.inspect}")
+    end
+  end
+
+  class NonWhitelistedMethodError < RuntimeError
+
+    attr_reader :klass, :method
+
+    def initialize(klass, meth)
+      @klass = klass
+      @method = meth
+      super("not whitelisted : #{klass.inspect}##{meth}")
+    end
+  end
+
   # The entry point.
   #
   def self.eval_tree(tree)
+
+    #p tree
 
     send("eval_#{tree.first}", tree)
   end
@@ -58,6 +86,14 @@ module Subaltern
 
     target = eval_tree(tree[1])
     method = tree[2]
+
+    unless WHITELIST.keys.include?(target.class)
+      raise NonWhitelistedClassError.new(target.class)
+    end
+    unless WHITELIST[target.class].include?(method.to_s)
+      raise NonWhitelistedMethodError.new(target.class, method)
+    end
+
     args = tree[3][1..-1].collect { |t| eval_tree(t) }
 
     target.send(method, *args)
