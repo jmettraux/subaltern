@@ -131,7 +131,9 @@ type unpack upcase upcase! upto zip
 
     def []=(key, value)
 
-      @variables[key] = value
+      @variables[key] = value unless set(key, value)
+
+      value
     end
 
     # Warning : shallow (doesn't lookup in parent context)
@@ -139,6 +141,20 @@ type unpack upcase upcase! upto zip
     def has_key?(key)
 
       @variables.has_key?(key)
+    end
+
+    protected
+
+    def set(key, value)
+
+      if has_key?(key)
+        @variables[key] = value
+        true
+      elsif @parent == nil
+        false
+      else
+        @parent.set(key, value)
+      end
     end
   end
 
@@ -166,6 +182,8 @@ type unpack upcase upcase! upto zip
     def initialize(tree)
 
       @tree = tree
+
+      # TODO : eventually, follow Block's example and split the tree here
     end
 
     def call(context, tree)
@@ -199,6 +217,40 @@ type unpack upcase upcase! upto zip
         Subaltern.eval_tree(con, @tree[3])
       rescue Return => r
         r.value
+      end
+    end
+  end
+
+  #
+  # Wrapper for Ruby blocks.
+  #
+  class Block
+
+    def initialize(tree)
+
+      @arglist = Array(refine(tree[0])).flatten
+      @tree = tree[1]
+    end
+
+    def call(context, arguments)
+
+      arguments = arguments.flatten
+
+      con = Context.new(context, {})
+
+      @arglist.each_with_index { |a, i| con[a] = arguments[i] }
+
+      Subaltern.eval_tree(con, @tree)
+    end
+
+    protected
+
+    def refine(tree)
+
+      if tree[0] == :masgn
+        tree[1][1..-1].collect { |t| refine(t) }
+      else # :lasgn
+        tree[1].to_s
       end
     end
   end
@@ -356,17 +408,16 @@ type unpack upcase upcase! upto zip
 
   def self.eval_iter(context, tree)
 
-    p tree
-    #target = tree[1][1]
-    #method = tree[1][2]
-    #method_args = tree[1][3]
-    #puts
-    #p [ :target, target ]
-    #p [ :method, method ]
-    #p [ :method_args, method_args ]
-    #p tree[2..-1]
+    # TODO : raise if method not in whitelist of target
 
-    nil
+    target = eval_tree(context, tree[1][1])
+    method = tree[1][2]
+
+    method_args = tree[1][3][1..-1].collect { |t| eval_tree(context, t) }
+    block = Block.new(tree[2..-1])
+    prok = Kernel.eval(%{ Proc.new { |*args| block.call(context, args) } })
+
+    target.send(method, *method_args, &prok)
   end
 end
 

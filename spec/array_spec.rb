@@ -30,7 +30,7 @@ describe Subaltern do
 
         Subaltern.eval(%[
           sum = 0
-          [ 1, 2, 3, 4 ].each(0) { |e| sum = sum + e }
+          [ 1, 2, 3, 4 ].each { |e| sum = sum + e }
           sum
         ]).should == 10
       end
@@ -42,7 +42,7 @@ describe Subaltern do
 
         Subaltern.eval(%[
           [ 1, 2, 3 ].inject(0) { |sum, e| sum + e }
-        ]).should == [ 2, 3, 4 ]
+        ]).should == 6
       end
     end
 

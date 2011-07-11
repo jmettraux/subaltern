@@ -39,7 +39,7 @@ describe Subaltern do
 
         Subaltern.eval('''
           s = []
-          { "a" => 1, "b" => 2 }.each { |k, v| s << "#{k}:#{v}\n" }
+          { "a" => 1, "b" => 2 }.each { |k, v| s << "#{k}:#{v}" }
           s.join(", ")
         ''').should == 'a:1, b:2'
       end
@@ -50,9 +50,7 @@ describe Subaltern do
       it 'works' do
 
         Subaltern.eval('''
-          { "a" => 1, "b" => 2 }.collect do |k, v|
-            s << "#{k}:#{v}\n"
-          end.join(", ")
+          { "a" => 1, "b" => 2 }.collect do |k, v| "#{k}:#{v}"; end.join(", ")
         ''').should == 'a:1, b:2'
       end
     end
@@ -72,8 +70,8 @@ describe Subaltern do
       it 'works' do
 
         Subaltern.eval('''
-          { "a" => 1, "b" => 2 }.select { |k, v| v.odd? }
-        ''').should == [ 'a', 1 ]
+          { "a" => 1, "b" => 2, "c" => 3 }.select { |k, v| v.odd? }
+        ''').should == [ [ 'a', 1 ], [ 'c', 3 ] ]
       end
     end
   end
