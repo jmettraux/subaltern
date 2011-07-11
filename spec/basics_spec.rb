@@ -79,5 +79,17 @@ describe Subaltern do
       }).should == 'abc'
     end
   end
+
+  describe 'return' do
+
+    it 'is honored' do
+
+      Subaltern.eval(%{
+        'a'
+        return 'A'
+        'b'
+      }).should == 'A'
+    end
+  end
 end
 
