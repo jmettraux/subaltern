@@ -133,6 +133,13 @@ type unpack upcase upcase! upto zip
 
       @variables[key] = value
     end
+
+    # Warning : shallow (doesn't lookup in parent context)
+    #
+    def has_key?(key)
+
+      @variables.has_key?(key)
+    end
   end
 
   #
@@ -147,12 +154,21 @@ type unpack upcase upcase! upto zip
 
     def call(context, tree)
 
-      args = tree[3][1..-1].collect { |t| Subaltern.eval_tree(context, t) }
+      meth_args = @tree[2][1..-1]
+      l = meth_args.last
+      meth_arg_defaults = l.is_a?(Array) && l.first == :block ? l[1..-1] : []
+      call_args = tree[3][1..-1].collect { |t| Subaltern.eval_tree(context, t) }
 
-      c = Context.new(context, {})
-      args.each_with_index { |arg, i| c[@tree[2][1..-1][i].to_s] = arg }
+      con = Context.new(context, {})
 
-      Subaltern.eval_tree(c, @tree[3])
+      call_args.each_with_index { |arg, i| con[meth_args[i].to_s] = arg }
+
+      meth_arg_defaults.each do |d|
+        name = d[1].to_s
+        con[name] = Subaltern.eval_tree(context, d[2]) unless con.has_key?(name)
+      end
+
+      Subaltern.eval_tree(con, @tree[3])
     end
   end
 
@@ -288,6 +304,8 @@ type unpack upcase upcase! upto zip
   end
 
   def self.eval_defn(context, tree)
+
+    #p tree
 
     name = tree[1].to_s
     context[name] = Function.new(tree)
