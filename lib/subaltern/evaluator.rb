@@ -143,6 +143,22 @@ type unpack upcase upcase! upto zip
   end
 
   #
+  # I wish I could use throw/catch, but only Ruby 1.9.x allows for throwing
+  # something else than a Symbol.
+  # Going with a standard error for now.
+  #
+  class Return < StandardError
+
+    attr_reader :value
+
+    def initialize(value)
+
+      @value = value
+      super('')
+    end
+  end
+
+  #
   # Wrapper for function trees when stored in Context instances.
   #
   class Function
@@ -166,7 +182,8 @@ type unpack upcase upcase! upto zip
       call_args.each_with_index do |arg, i|
         name = meth_args[i].to_s
         if m = name.match(/^\*(.+)$/)
-          con[m[1]] = call_args[i..-1]; break
+          con[m[1]] = call_args[i..-1]
+          break
         end
         con[name] = arg
       end
@@ -178,7 +195,11 @@ type unpack upcase upcase! upto zip
         con[name] = Subaltern.eval_tree(context, d[2]) unless con.has_key?(name)
       end
 
-      Subaltern.eval_tree(con, @tree[3])
+      begin
+        Subaltern.eval_tree(con, @tree[3])
+      rescue Return => r
+        r.value
+      end
     end
   end
 
@@ -326,6 +347,11 @@ type unpack upcase upcase! upto zip
   def self.eval_scope(context, tree)
 
     eval_tree(context, tree[1])
+  end
+
+  def self.eval_return(context, tree)
+
+    raise(Return.new(eval_tree(context, tree[1])))
   end
 
   def self.eval_iter(context, tree)

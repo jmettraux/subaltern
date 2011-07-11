@@ -45,7 +45,17 @@ describe Subaltern do
       }).should == [ 1, 2, 3, 4 ]
     end
 
-    it 'accepts "return" in the middle of functions'
+    it 'accepts "return" in the middle of functions' do
+
+      Subaltern.eval(%{
+        def hello
+          1
+          return 'nada'
+          2
+        end
+        hello
+      }).should == 'nada'
+    end
   end
 end
 
