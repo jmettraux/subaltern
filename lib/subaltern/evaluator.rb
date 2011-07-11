@@ -57,6 +57,19 @@ instance_of? integer? is_a? kind_of? modulo next nil? nonzero? object_id odd?
 ord prec prec_f prec_i pred quo remainder respond_to? round size step succ tap
 times to_a to_enum to_f to_i to_int to_s to_sym truncate type upto zero? | ~
     ],
+    Hash => %w[
+== === =~ [] []= __id__
+all? any? class clear clone collect count cycle default default= default_proc
+delete delete_if detect display drop drop_while dup each each_cons each_key
+each_pair each_slice each_value each_with_index empty? entries enum_cons
+enum_for enum_slice enum_with_index eql? equal? fetch find find_all find_index
+first grep group_by has_key? has_value? hash id include? index indexes indices
+inject inspect instance_of? invert is_a? key? keys kind_of? length map max
+max_by member? merge merge! min min_by minmax minmax_by nil? none? object_id
+one? partition reduce rehash reject reject! replace respond_to? reverse_each
+select shift size sort sort_by store take take_while tap to_a to_enum to_hash
+to_s type update value? values values_at zip
+    ],
     MatchData => %[
 []
     ],
@@ -166,13 +179,26 @@ type unpack upcase upcase! upto zip
     Hash[*eval_array(context, tree)]
   end
 
+  def self.is_javascripty_hash_lookup(target, method, args)
+
+    target.is_a?(Hash) &&
+    args.empty? &&
+    ( ! WHITELIST[Hash].include?(method)) &&
+    target.has_key?(method)
+  end
+
   def self.eval_call(context, tree)
 
     return eval_lvar(context, tree[1, 2]) if tree[1] == nil
       # it's all variables...
 
     target = eval_tree(context, tree[1])
-    method = tree[2]
+    method = tree[2].to_s
+    args = tree[3][1..-1]
+
+    if is_javascripty_hash_lookup(target, method, args)
+      return target[method]
+    end
 
     if BLACKLIST.include?(method.to_s)
       raise BlacklistedMethodError.new(target.class)
@@ -180,11 +206,11 @@ type unpack upcase upcase! upto zip
     unless WHITELIST.keys.include?(target.class)
       raise NonWhitelistedClassError.new(target.class)
     end
-    unless WHITELIST[target.class].include?(method.to_s)
+    unless WHITELIST[target.class].include?(method)
       raise NonWhitelistedMethodError.new(target.class, method)
     end
 
-    args = tree[3][1..-1].collect { |t| eval_tree(context, t) }
+    args = args.collect { |t| eval_tree(context, t) }
 
     target.send(method, *args)
   end

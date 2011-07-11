@@ -21,9 +21,21 @@ describe Subaltern do
       Subaltern.eval('[ 1, [ 2, 3 ] ].flatten').should == [ 1, 2, 3 ]
     end
 
+    describe '#each' do
+
+      it 'works' do
+
+        Subaltern.eval(%[
+          sum = 0
+          [ 1, 2, 3, 4 ].each(0) { |e| sum = sum + e }
+          sum
+        ]).should == 10
+      end
+    end
+
     describe '#inject' do
 
-      it 'works OK' do
+      it 'works' do
 
         Subaltern.eval(%[
           [ 1, 2, 3 ].inject(0) { |sum, e| sum + e }
@@ -33,7 +45,7 @@ describe Subaltern do
 
     describe '#collect' do
 
-      it 'works OK' do
+      it 'works' do
 
         Subaltern.eval(%[
           [ 1, 2, 3 ].collect { |e| e + 1 }
@@ -43,7 +55,7 @@ describe Subaltern do
 
     describe '#select' do
 
-      it 'works OK' do
+      it 'works' do
 
         Subaltern.eval(%[
           [ 1, 2, 3 ].select { |e| true }
