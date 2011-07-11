@@ -23,6 +23,10 @@
 
 module Subaltern
 
+  #--
+  # whitelisting, and some blacklisting, out of pure distrust
+  #++
+
   BLACKLIST = %w[
 extend instance_eval instance_exec method methods include
 private_methods public_methods protected_methods singleton_methods
@@ -100,6 +104,13 @@ type unpack upcase upcase! upto zip
     ]
   }
 
+  #--
+  # helper classes
+  #++
+
+  #
+  # Variable scope.
+  #
   class Context
 
     attr_reader :parent
@@ -123,6 +134,31 @@ type unpack upcase upcase! upto zip
       @variables[key] = value
     end
   end
+
+  #
+  # Wrapper for function trees when stored in Context instances.
+  #
+  class Function
+
+    def initialize(tree)
+
+      @tree = tree
+    end
+
+    def call(context, tree)
+
+      args = tree[3][1..-1].collect { |t| Subaltern.eval_tree(context, t) }
+
+      c = Context.new(context, {})
+      args.each_with_index { |arg, i| c[@tree[2][1..-1][i].to_s] = arg }
+
+      Subaltern.eval_tree(c, @tree[3])
+    end
+  end
+
+  #--
+  # the eval_ methods
+  #++
 
   # The entry point.
   #
@@ -179,7 +215,7 @@ type unpack upcase upcase! upto zip
     Hash[*eval_array(context, tree)]
   end
 
-  def self.is_javascripty_hash_lookup(target, method, args)
+  def self.is_javascripty_hash_lookup?(target, method, args)
 
     target.is_a?(Hash) &&
     args.empty? &&
@@ -189,14 +225,20 @@ type unpack upcase upcase! upto zip
 
   def self.eval_call(context, tree)
 
-    return eval_lvar(context, tree[1, 2]) if tree[1] == nil
-      # it's all variables...
+    if tree[1] == nil
+      # variable lookup or function application...
+
+      value = eval_lvar(context, tree[1, 2])
+
+      return value.call(context, tree) if value.is_a?(Subaltern::Function)
+      return value
+    end
 
     target = eval_tree(context, tree[1])
     method = tree[2].to_s
     args = tree[3][1..-1]
 
-    if is_javascripty_hash_lookup(target, method, args)
+    if is_javascripty_hash_lookup?(target, method, args)
       return target[method]
     end
 
@@ -243,6 +285,19 @@ type unpack upcase upcase! upto zip
   def self.eval_colon2(context, tree)
 
     raise AccessError.new("no access to constants (#{tree[1]})")
+  end
+
+  def self.eval_defn(context, tree)
+
+    name = tree[1].to_s
+    context[name] = Function.new(tree)
+
+    nil
+  end
+
+  def self.eval_scope(context, tree)
+
+    eval_tree(context, tree[1])
   end
 
   def self.eval_iter(context, tree)
