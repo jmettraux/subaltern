@@ -45,6 +45,16 @@ describe Subaltern do
       }).should == [ 1, 2, 3, 4 ]
     end
 
+    it 'accepts a final hash argument' do
+
+      Subaltern.eval(%{
+        def pretty(a, b)
+          [ a, b ]
+        end
+        pretty('a', 'b' => 'c')
+      }).should == [ 'a', { 'b' => 'c' } ]
+    end
+
     it 'accepts "return" in the middle of functions' do
 
       Subaltern.eval(%{
