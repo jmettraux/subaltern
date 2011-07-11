@@ -303,6 +303,15 @@ type unpack upcase upcase! upto zip
   def self.eval_iter(context, tree)
 
     p tree
+    #target = tree[1][1]
+    #method = tree[1][2]
+    #method_args = tree[1][3]
+    #puts
+    #p [ :target, target ]
+    #p [ :method, method ]
+    #p [ :method_args, method_args ]
+    #p tree[2..-1]
+
     nil
   end
 end

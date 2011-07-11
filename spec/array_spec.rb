@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe Subaltern do
 
-  describe 'arrays' do
+  describe Array do
 
     describe '[]' do
 
