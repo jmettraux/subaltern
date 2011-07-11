@@ -161,7 +161,17 @@ type unpack upcase upcase! upto zip
 
       con = Context.new(context, {})
 
-      call_args.each_with_index { |arg, i| con[meth_args[i].to_s] = arg }
+      # bind arguments
+
+      call_args.each_with_index do |arg, i|
+        name = meth_args[i].to_s
+        if m = name.match(/^\*(.+)$/)
+          con[m[1]] = call_args[i..-1]; break
+        end
+        con[name] = arg
+      end
+
+      # bind default arguments (when necessary)
 
       meth_arg_defaults.each do |d|
         name = d[1].to_s

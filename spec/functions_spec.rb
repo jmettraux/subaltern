@@ -35,7 +35,15 @@ describe Subaltern do
       }).should == [ 5, 7 ]
     end
 
-    it 'accepts functions with starred parameters'
+    it 'accepts functions with starred parameters' do
+
+      Subaltern.eval(%{
+        def concat(a, *args)
+          [ a ] + args
+        end
+        concat(1, 2, 3, 4)
+      }).should == [ 1, 2, 3, 4 ]
+    end
 
     it 'accepts "return" in the middle of functions'
   end
