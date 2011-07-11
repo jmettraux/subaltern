@@ -4,9 +4,9 @@ require 'spec_helper'
 
 describe Subaltern do
 
-  context 'with Fixnum' do
+  describe 'Fixnum' do
 
-    it 'evaluates almost freely' do
+    it 'works' do
 
       Subaltern.eval('1.0').should == 1.0
       Subaltern.eval('1 + 1').should == 2

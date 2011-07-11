@@ -4,21 +4,24 @@ require 'spec_helper'
 
 describe Subaltern do
 
-  describe '[]' do
-
-    it 'returns the array' do
-
-      Subaltern.eval('[]').should == []
-      Subaltern.eval('[ 1, 2 ]').should == [ 1, 2 ]
-    end
-  end
-
   describe 'arrays' do
 
-    it 'are mostly trusted' do
+    describe '[]' do
 
-      Subaltern.eval('[ 1, 2, 3 ].length').should == 3
-      Subaltern.eval('[ 1, [ 2, 3 ] ].flatten').should == [ 1, 2, 3 ]
+      it 'returns the array' do
+
+        Subaltern.eval('[]').should == []
+        Subaltern.eval('[ 1, 2 ]').should == [ 1, 2 ]
+      end
+    end
+
+    describe 'standard array methods' do
+
+      it 'are accepted' do
+
+        Subaltern.eval('[ 1, 2, 3 ].length').should == 3
+        Subaltern.eval('[ 1, [ 2, 3 ] ].flatten').should == [ 1, 2, 3 ]
+      end
     end
 
     describe '#each' do

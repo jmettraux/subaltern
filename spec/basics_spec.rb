@@ -64,7 +64,7 @@ describe Subaltern do
 
   describe 'using regular expressions' do
 
-    it 'is OK' do
+    it 'works' do
 
       Subaltern.eval(%{
         /abc/.match('d')
