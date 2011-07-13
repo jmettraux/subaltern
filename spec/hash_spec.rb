@@ -69,9 +69,18 @@ describe Subaltern do
 
       it 'works' do
 
-        Subaltern.eval('''
-          { "a" => 1, "b" => 2, "c" => 3 }.select { |k, v| v.odd? }
-        ''').should == [ [ 'a', 1 ], [ 'c', 3 ] ]
+        if ruby19?
+
+          Subaltern.eval('''
+            { "a" => 1, "b" => 2, "c" => 3 }.select { |k, v| v.odd? }
+          ''').should == { 'a' => 1, 'c' => 3 }
+
+        else
+
+          Subaltern.eval('''
+            { "a" => 1, "b" => 2, "c" => 3 }.select { |k, v| v.odd? }
+          ''').should == [ [ 'a', 1 ], [ 'c', 3 ] ]
+        end
       end
     end
   end
