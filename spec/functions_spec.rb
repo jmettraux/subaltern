@@ -66,6 +66,18 @@ describe Subaltern do
         hello
       }).should == 'nada'
     end
+
+    it 'accepts functions with blocks' do
+
+      Subaltern.eval(%{
+        def hello
+          1 + yield
+        end
+        hello { 3 }
+      }).should == 4
+    end
+
+    it 'accepts functions with explicit blocks'
   end
 end
 

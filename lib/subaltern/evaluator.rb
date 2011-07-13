@@ -271,6 +271,7 @@ type unpack upcase upcase! upto zip
     p tree
     puts nme.backtrace.join("\n")
     puts '-' * 80
+    raise nme
   end
 
   %w[ false true nil ].each do |key|
@@ -408,6 +409,12 @@ type unpack upcase upcase! upto zip
 
   def self.eval_iter(context, tree)
 
+    if tree[1][1] == nil
+      # method call with a block
+      con = Context.new(context, 'block' => tree[3])
+      return eval_call(con, tree[1])
+    end
+
     # TODO : raise if method not in whitelist of target
 
     target = eval_tree(context, tree[1][1])
@@ -418,6 +425,11 @@ type unpack upcase upcase! upto zip
     prok = Kernel.eval(%{ Proc.new { |*args| block.call(context, args) } })
 
     target.send(method, *method_args, &prok)
+  end
+
+  def self.eval_yield(context, tree)
+
+    eval_tree(context, context['block'])
   end
 end
 
