@@ -86,6 +86,21 @@ describe Subaltern do
         }.should raise_error(Subaltern::AccessError)
       end
     end
+
+    describe 'method with a block' do
+
+      it 'is not automatically whitelisted' do
+
+        class Array
+          def whatever
+          end
+        end
+
+        lambda {
+          Subaltern.eval('[].whatever { |e| false }')
+        }.should raise_error(Subaltern::NonWhitelistedMethodError)
+      end
+    end
   end
 end
 

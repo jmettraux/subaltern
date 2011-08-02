@@ -23,7 +23,10 @@
 
 module Subaltern
 
-  class BlacklistedMethodError < RuntimeError
+  class SubalternError < RuntimeError
+  end
+
+  class BlacklistedMethodError < SubalternError
 
     attr_reader :klass, :method
 
@@ -35,7 +38,7 @@ module Subaltern
     end
   end
 
-  class NonWhitelistedClassError < RuntimeError
+  class NonWhitelistedClassError < SubalternError
 
     attr_reader :klass
 
@@ -46,7 +49,7 @@ module Subaltern
     end
   end
 
-  class NonWhitelistedMethodError < RuntimeError
+  class NonWhitelistedMethodError < SubalternError
 
     attr_reader :klass, :method
 
@@ -58,7 +61,7 @@ module Subaltern
     end
   end
 
-  class UndefinedVariableError < RuntimeError
+  class UndefinedVariableError < SubalternError
 
     attr_reader :variable_name
 
@@ -69,7 +72,7 @@ module Subaltern
     end
   end
 
-  class AccessError < RuntimeError
+  class AccessError < SubalternError
   end
 end
 

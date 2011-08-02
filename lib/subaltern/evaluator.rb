@@ -275,6 +275,22 @@ type unpack upcase upcase! upto zip
     end
   end
 
+  # Will raise an exception if calling that method on this target
+  # is not whitelisted (or is blacklisted).
+  #
+  def self.bounce(target, method)
+
+    if BLACKLIST.include?(method.to_s)
+      raise BlacklistedMethodError.new(target.class)
+    end
+    unless WHITELIST.keys.include?(target.class)
+      raise NonWhitelistedClassError.new(target.class)
+    end
+    unless WHITELIST[target.class].include?(method.to_s)
+      raise NonWhitelistedMethodError.new(target.class, method)
+    end
+  end
+
   #--
   # the eval_ methods
   #++
@@ -371,15 +387,7 @@ type unpack upcase upcase! upto zip
 
     return target.call(context, args) if target.is_a?(Subaltern::Block)
 
-    if BLACKLIST.include?(method.to_s)
-      raise BlacklistedMethodError.new(target.class)
-    end
-    unless WHITELIST.keys.include?(target.class)
-      raise NonWhitelistedClassError.new(target.class)
-    end
-    unless WHITELIST[target.class].include?(method)
-      raise NonWhitelistedMethodError.new(target.class, method)
-    end
+    bounce(target, method)
 
     target.send(method, *args)
   end
@@ -448,10 +456,10 @@ type unpack upcase upcase! upto zip
       #
       # method with a block
 
-      # TODO : raise if method not in whitelist of target
-
       target = eval_tree(context, tree[1][1])
       method = tree[1][2]
+
+      bounce(target, method)
 
       method_args = tree[1][3][1..-1].collect { |t| eval_tree(context, t) }
       block = Block.new(tree[2..-1])
