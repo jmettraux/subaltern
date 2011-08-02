@@ -325,6 +325,11 @@ type unpack upcase upcase! upto zip
     raise AccessError.new("no backquoting allowed (#{tree[1]})")
   end
 
+  def self.eval_dxstr(context, tree)
+
+    raise AccessError.new("no backquoting allowed (#{tree[1]})")
+  end
+
   def self.eval_array(context, tree)
 
     tree[1..-1].collect { |t| eval_tree(context, t) }

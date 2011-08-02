@@ -72,10 +72,17 @@ describe Subaltern do
 
     describe 'backquoting' do
 
-      it 'raises' do
+      it 'raises (simple case)' do
 
         lambda {
           Subaltern.eval('`ls -al`')
+        }.should raise_error(Subaltern::AccessError)
+      end
+
+      it 'raises (string extrapolation case)' do
+
+        lambda {
+          Subaltern.eval('`ls -al #{nada}`')
         }.should raise_error(Subaltern::AccessError)
       end
     end
