@@ -37,6 +37,15 @@ instance_variable_defined?
 free frozen?
   ]
 
+  # TODO :
+  #
+  # eventually generate those whitelists by doing
+  #
+  #   class.public_instance_methods - BLACKLIST
+  #
+  # though it would accept any new methods added by the 'user'.
+  # Well, since the 'user' can't overwrite methods...
+
   WHITELIST = {
     Array => %w[
 & * + - << <=> == === =~ [] []=
@@ -213,6 +222,14 @@ type unpack upcase upcase! upto zip
         con[name] = Subaltern.eval_tree(context, d[2]) unless con.has_key?(name)
       end
 
+      # is there a block ?
+
+      if m =  (meth_args.last || '').to_s.match(/^&(.+)/)
+        con[m[1]] = context['__block']
+      end
+
+      # now do it
+
       begin
         Subaltern.eval_tree(con, @tree[3])
       rescue Return => r
@@ -228,8 +245,11 @@ type unpack upcase upcase! upto zip
 
     def initialize(tree)
 
-      @arglist = Array(refine(tree[0])).flatten
-      @tree = tree[1]
+      @arglist, @tree = if tree[0].is_a?(Array) #&& tree[0][0] == :masgn
+        [ Array(refine(tree[0])).flatten, tree[1] ]
+      else
+        [ [], tree ]
+      end
     end
 
     def call(context, arguments)
@@ -342,6 +362,10 @@ type unpack upcase upcase! upto zip
       return target[method]
     end
 
+    args = args.collect { |t| eval_tree(context, t) }
+
+    return target.call(context, args) if target.is_a?(Subaltern::Block)
+
     if BLACKLIST.include?(method.to_s)
       raise BlacklistedMethodError.new(target.class)
     end
@@ -351,8 +375,6 @@ type unpack upcase upcase! upto zip
     unless WHITELIST[target.class].include?(method)
       raise NonWhitelistedMethodError.new(target.class, method)
     end
-
-    args = args.collect { |t| eval_tree(context, t) }
 
     target.send(method, *args)
   end
@@ -410,26 +432,37 @@ type unpack upcase upcase! upto zip
   def self.eval_iter(context, tree)
 
     if tree[1][1] == nil
-      # method call with a block
-      con = Context.new(context, 'block' => tree[3])
-      return eval_call(con, tree[1])
+      #
+      # function with a block
+
+      con = Context.new(context, '__block' => Block.new(tree[3]))
+
+      eval_call(con, tree[1])
+
+    else
+      #
+      # method with a block
+
+      # TODO : raise if method not in whitelist of target
+
+      target = eval_tree(context, tree[1][1])
+      method = tree[1][2]
+
+      method_args = tree[1][3][1..-1].collect { |t| eval_tree(context, t) }
+      block = Block.new(tree[2..-1])
+      prok = Kernel.eval(%{ Proc.new { |*args| block.call(context, args) } })
+
+      target.send(method, *method_args, &prok)
     end
-
-    # TODO : raise if method not in whitelist of target
-
-    target = eval_tree(context, tree[1][1])
-    method = tree[1][2]
-
-    method_args = tree[1][3][1..-1].collect { |t| eval_tree(context, t) }
-    block = Block.new(tree[2..-1])
-    prok = Kernel.eval(%{ Proc.new { |*args| block.call(context, args) } })
-
-    target.send(method, *method_args, &prok)
   end
 
   def self.eval_yield(context, tree)
 
-    eval_tree(context, context['block'])
+    # TODO : arguments !!
+
+    arguments = []
+
+    context['__block'].call(context, arguments)
   end
 end
 

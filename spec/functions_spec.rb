@@ -77,7 +77,15 @@ describe Subaltern do
       }).should == 4
     end
 
-    it 'accepts functions with explicit blocks'
+    it 'accepts functions with explicit blocks' do
+
+      Subaltern.eval(%{
+        def hello(start, &block)
+          start + block.call
+        end
+        hello(1) { 3 }
+      }).should == 4
+    end
   end
 end
 
