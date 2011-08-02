@@ -1,7 +1,7 @@
 
 # subaltern
 
-is a Ruby self-interpreter. It's sub-functional, it's a subaltern.
+Subaltern is a Ruby self-interpreter. It's sub-functional, it's a subaltern.
 
 
 ## issues

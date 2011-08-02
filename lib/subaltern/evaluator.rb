@@ -224,7 +224,7 @@ type unpack upcase upcase! upto zip
 
       # is there a block ?
 
-      if m =  (meth_args.last || '').to_s.match(/^&(.+)/)
+      if m = (meth_args.last || '').to_s.match(/^&(.+)/)
         con[m[1]] = context['__block']
       end
 
@@ -245,11 +245,8 @@ type unpack upcase upcase! upto zip
 
     def initialize(tree)
 
-      @arglist, @tree = if tree[0].is_a?(Array) #&& tree[0][0] == :masgn
-        [ Array(refine(tree[0])).flatten, tree[1] ]
-      else
-        [ [], tree ]
-      end
+      @arglist = Array(refine(tree[0] || [])).flatten
+      @tree = tree[1]
     end
 
     def call(context, arguments)
@@ -448,7 +445,7 @@ type unpack upcase upcase! upto zip
       #
       # function with a block
 
-      con = Context.new(context, '__block' => Block.new(tree[3]))
+      con = Context.new(context, '__block' => Block.new(tree[2..-1]))
 
       eval_call(con, tree[1])
 
@@ -471,11 +468,9 @@ type unpack upcase upcase! upto zip
 
   def self.eval_yield(context, tree)
 
-    # TODO : arguments !!
+    args = tree[1..-1].collect { |t| Subaltern.eval_tree(context, t) }
 
-    arguments = []
-
-    context['__block'].call(context, arguments)
+    context['__block'].call(context, args)
   end
 end
 

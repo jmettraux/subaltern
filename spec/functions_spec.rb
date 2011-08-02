@@ -86,6 +86,38 @@ describe Subaltern do
         hello(1) { 3 }
       }).should == 4
     end
+
+    it 'accepts functions that call blocks with arguments' do
+
+      Subaltern.eval(%{
+        def hello(start, &block)
+          start + block.call(start)
+        end
+        hello(3) { |s| s * 3 }
+      }).should == 12
+    end
+
+    it 'accepts functions that yield arguments to blocks' do
+
+      Subaltern.eval(%{
+        def hello(start)
+          start + yield(start)
+        end
+        hello(3) { |s| s * 3 }
+      }).should == 12
+    end
+
+    it 'raises when a block is called without its arg' do
+
+      lambda {
+        Subaltern.eval(%{
+          def hello(start, &block)
+            start + block.call
+          end
+          hello(3) { |start| start * 3 }
+        })
+      }.should raise_error(Subaltern::NonWhitelistedMethodError)
+    end
   end
 end
 
