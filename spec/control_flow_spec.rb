@@ -57,6 +57,85 @@ describe Subaltern do
     end
   end
 
+  describe 'case' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        case true
+          when true then :ok
+          when false then :not_ok
+          else :really_not_ok
+        end
+      }).should == :ok
+    end
+
+    it 'works (else)' do
+
+      Subaltern.eval(%{
+        case false
+          when true then :not_ok
+          else :ok
+        end
+      }).should == :ok
+    end
+
+    it 'works (multiline)' do
+
+      Subaltern.eval(%{
+        case true
+          when true
+            :not_ok
+            :ok
+          else
+            :really_not_ok
+        end
+      }).should == :ok
+    end
+
+    it 'works (classes)' do
+
+      Subaltern.eval(%{
+        case true
+          when FalseClass
+            :not_ok
+          when TrueClass
+            :ok
+          else
+            :really_not_ok
+        end
+      }).should == :ok
+    end
+
+    it 'works (regexes)' do
+
+      Subaltern.eval(%{
+        case 'the little bird'
+          when /fox/
+            :not_ok
+          when /bird/
+            :ok
+          else
+            :really_not_ok
+        end
+      }).should == :ok
+    end
+
+    it 'works (regexes 2)' do
+
+      Subaltern.eval(%{
+        case 'the little bird'
+          when /squirrel/
+            :not_ok
+          when /chipmunk/
+            :really_not_ok
+          else
+            :ok
+        end
+      }).should == :ok
+    end
+  end
+
   context '#each' do
 
     describe 'break' do

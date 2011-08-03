@@ -113,6 +113,10 @@ type unpack upcase upcase! upto zip
     ]
   }
 
+  WHITELISTED_CONSTANTS =
+    WHITELIST.keys.collect { |k| k.name.to_sym } +
+    [ :FalseClass, :TrueClass ]
+
   #--
   # helper classes
   #++
@@ -422,12 +426,16 @@ type unpack upcase upcase! upto zip
     raise AccessError.new("no global variables (#{tree[1]})")
   end
 
-  def self.eval_const(context, tree)
+  def self.eval_colon2(context, tree)
 
     raise AccessError.new("no access to constants (#{tree[1]})")
   end
 
-  def self.eval_colon2(context, tree)
+  def self.eval_const(context, tree)
+
+    if WHITELISTED_CONSTANTS.include?(tree[1])
+      return Kernel.const_get(tree[1].to_s)
+    end
 
     raise AccessError.new("no access to constants (#{tree[1]})")
   end
@@ -539,6 +547,23 @@ type unpack upcase upcase! upto zip
   def self.eval_not(context, tree)
 
     not eval_tree(context, tree[1])
+  end
+
+  def self.eval_case(context, tree)
+
+    value = eval_tree(context, tree[1])
+    whens = tree[2..-1].select { |t| t[0] == :when }
+    the_else = (tree[2..-1] - whens).first
+
+    whens.each do |w|
+
+      eval_tree(context, w[1]).each do |v|
+
+        return eval_tree(context, w[2]) if v === value
+      end
+    end
+
+    the_else ? eval_tree(context, the_else) : nil
   end
 end
 

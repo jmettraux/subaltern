@@ -5,14 +5,16 @@
 [o] unless
 [o] if postfix
 [o] unless postfix
+[o] case
 
 [o] break / next
 [ ] break / next with function (method is already OK)
 
 [ ] rescue (maybe rescue nil is useful)
 
-[ ] case
-[ ] while
+[ ] loop
+[ ] while / until
+[ ] for
 
 [ ] redo/retry (low priority)
 
