@@ -81,5 +81,49 @@ describe Subaltern do
       }).should == true
     end
   end
+
+  describe '==' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        1 == 1
+      }).should == true
+    end
+
+    it 'works (2)' do
+
+      Subaltern.eval(%{
+        1 == 2
+      }).should == false
+    end
+  end
+
+  describe '!=' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        1 != 1
+      }).should == false
+    end
+
+    it 'works (2)' do
+
+      Subaltern.eval(%{
+        1 != 2
+      }).should == true
+    end
+  end
+
+  describe '===' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        String === ''
+      }).should == true
+    end
+  end
 end
 

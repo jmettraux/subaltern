@@ -110,6 +110,9 @@ rstrip! scan select size slice slice! sort sort_by split squeeze squeeze!
 start_with? strip strip! sub sub! succ succ! sum swapcase swapcase! take
 take_while tap to_a to_enum to_f to_i to_s to_str to_sym tr tr! tr_s tr_s!
 type unpack upcase upcase! upto zip
+    ],
+    Class => %w[
+===
     ]
   }
 

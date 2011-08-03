@@ -6,15 +6,17 @@
 [o] if postfix
 [o] unless postfix
 [o] case
+[o] < <= > >=
+[o] ===
 
 [o] break / next
 [ ] break / next with function (method is already OK)
 
 [ ] rescue (maybe rescue nil is useful)
 
-[ ] loop
 [ ] while / until
 [ ] for
+[ ] Kernel.loop
 
 [ ] redo/retry (low priority)
 
