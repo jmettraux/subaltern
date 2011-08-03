@@ -12,6 +12,8 @@
 [o] break / next
 [ ] break / next with function (method is already OK)
 
+[ ] elsif
+
 [o] while / until
 [ ] for
 [ ] Kernel.loop

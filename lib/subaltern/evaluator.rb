@@ -201,6 +201,24 @@ type unpack upcase upcase! upto zip
       @name = name
       @args = args
     end
+
+    # Used by Command.narrow
+    #
+    def result
+
+      return nil if args.empty?
+      return @args.first if args.size == 1
+      @args
+    end
+
+    # Used to circumvent a difference between ruby 1.8 and 1.9...
+    #
+    def self.narrow(o)
+
+      return o.result if o.is_a?(Command)
+      return o.collect { |e| e.is_a?(Command) ? e.result : e } if o.is_a?(Array)
+      o
+    end
   end
 
   #
@@ -485,17 +503,21 @@ type unpack upcase upcase! upto zip
       method_args = tree[1][3][1..-1].collect { |t| eval_tree(context, t) }
       block = Block.new(tree[2..-1])
 
-      target.send(method, *method_args) { |*args|
+      command = nil
+
+      result = target.send(method, *method_args) { |*args|
         begin
           block.call(context, args)
         rescue Command => c
           case c.name
-            when 'break' then break *c.args
-            when 'next' then next *c.args
+            when 'break' then break c
+            when 'next' then next c
             else raise c
           end
         end
       }
+
+      Command.narrow(result)
     end
   end
 
@@ -571,23 +593,25 @@ type unpack upcase upcase! upto zip
 
   def self.eval_while(context, tree)
 
-    while eval_tree(context, tree[1])
+    result = while eval_tree(context, tree[1])
 
       begin
         eval_tree(context, tree[2])
       rescue Command => c
         case c.name
-          when 'break' then break *c.args
-          when 'next' then next *c.args
+          when 'break' then break c
+          when 'next' then next c
           else raise c
         end
       end
     end
+
+    Command.narrow(result)
   end
 
   def self.eval_until(context, tree)
 
-    until eval_tree(context, tree[1])
+    result = until eval_tree(context, tree[1])
 
       begin
         eval_tree(context, tree[2])
@@ -599,6 +623,8 @@ type unpack upcase upcase! upto zip
         end
       end
     end
+
+    Command.narrow(result)
   end
 end
 
