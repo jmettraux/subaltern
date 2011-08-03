@@ -217,5 +217,22 @@ describe Subaltern do
       end
     end
   end
+
+  describe '#?' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        true ? 1 : 0
+      }).should == 1
+    end
+
+    it 'works (then)' do
+
+      Subaltern.eval(%{
+        false ? 0 : 1
+      }).should == 1
+    end
+  end
 end
 

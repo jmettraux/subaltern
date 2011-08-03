@@ -9,11 +9,10 @@
 [o] < <= > >=
 [o] ===
 [o] elsif
+[o] ?:
 
 [o] break / next
 [ ] break / next with function (method is already OK)
-
-[ ] ?:
 
 [o] while / until
 [ ] for
