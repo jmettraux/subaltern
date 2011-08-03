@@ -12,11 +12,11 @@
 [o] break / next
 [ ] break / next with function (method is already OK)
 
-[ ] rescue (maybe rescue nil is useful)
-
-[ ] while / until
+[o] while / until
 [ ] for
 [ ] Kernel.loop
+
+[ ] rescue (maybe rescue nil is useful)
 
 [ ] redo/retry (low priority)
 

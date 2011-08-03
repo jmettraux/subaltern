@@ -492,8 +492,8 @@ type unpack upcase upcase! upto zip
           case c.name
             when 'break' then break *c.args
             when 'next' then next *c.args
+            else raise c
           end
-          raise c
         end
       }
     end
@@ -567,6 +567,38 @@ type unpack upcase upcase! upto zip
     end
 
     the_else ? eval_tree(context, the_else) : nil
+  end
+
+  def self.eval_while(context, tree)
+
+    while eval_tree(context, tree[1])
+
+      begin
+        eval_tree(context, tree[2])
+      rescue Command => c
+        case c.name
+          when 'break' then break *c.args
+          when 'next' then next *c.args
+          else raise c
+        end
+      end
+    end
+  end
+
+  def self.eval_until(context, tree)
+
+    until eval_tree(context, tree[1])
+
+      begin
+        eval_tree(context, tree[2])
+      rescue Command => c
+        case c.name
+          when 'break' then break *c.args
+          when 'next' then next *c.args
+          else raise c
+        end
+      end
+    end
   end
 end
 
