@@ -184,6 +184,19 @@ type unpack upcase upcase! upto zip
   end
 
   #
+  # A command like 'break' or 'next'.
+  #
+  class Command < StandardError
+
+    attr_reader :name, :args
+
+    def initialize(name, args)
+      @name = name
+      @args = args
+    end
+  end
+
+  #
   # Wrapper for function trees when stored in Context instances.
   #
   class Function
@@ -460,17 +473,38 @@ type unpack upcase upcase! upto zip
 
       method_args = tree[1][3][1..-1].collect { |t| eval_tree(context, t) }
       block = Block.new(tree[2..-1])
-      prok = Kernel.eval(%{ Proc.new { |*args| block.call(context, args) } })
 
-      target.send(method, *method_args, &prok)
+      target.send(method, *method_args) { |*args|
+        begin
+          block.call(context, args)
+        rescue Command => c
+          case c.name
+            when 'break' then break *c.args
+            when 'next' then next *c.args
+          end
+          raise c
+        end
+      }
     end
   end
 
   def self.eval_yield(context, tree)
 
-    args = tree[1..-1].collect { |t| Subaltern.eval_tree(context, t) }
+    args = tree[1..-1].collect { |t| eval_tree(context, t) }
 
     context['__block'].call(context, args)
+  end
+
+  def self.eval_break(context, tree)
+
+    raise(
+      Command.new('break', tree[1..-1].collect { |t| eval_tree(context, t) }))
+  end
+
+  def self.eval_next(context, tree)
+
+    raise(
+      Command.new('next', tree[1..-1].collect { |t| eval_tree(context, t) }))
   end
 end
 
