@@ -43,6 +43,22 @@ describe Subaltern do
     end
   end
 
+  describe 'elsif' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        if false
+          :not_ok
+        elsif true
+          :ok
+        else
+          :really_not_ok
+        end
+      }).should == :ok
+    end
+  end
+
   describe 'unless' do
 
     it 'works' do

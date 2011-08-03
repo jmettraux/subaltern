@@ -8,11 +8,12 @@
 [o] case
 [o] < <= > >=
 [o] ===
+[o] elsif
 
 [o] break / next
 [ ] break / next with function (method is already OK)
 
-[ ] elsif
+[ ] ?:
 
 [o] while / until
 [ ] for
