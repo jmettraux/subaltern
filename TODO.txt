@@ -1,0 +1,18 @@
+
+[o] yield with arguments
+[o] not / !
+[o] if
+[o] unless
+[o] if postfix
+[o] unless postfix
+
+[o] break / next
+[ ] break / next with function (method is already OK)
+
+[ ] rescue (maybe rescue nil is useful)
+
+[ ] case
+[ ] while
+
+[ ] redo/retry (low priority)
+

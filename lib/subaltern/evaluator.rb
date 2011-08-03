@@ -506,5 +506,39 @@ type unpack upcase upcase! upto zip
     raise(
       Command.new('next', tree[1..-1].collect { |t| eval_tree(context, t) }))
   end
+
+  def self.eval_if(context, tree)
+
+    if eval_tree(context, tree[1])
+      eval_tree(context, tree[2])
+    else
+      eval_tree(context, tree[3])
+    end
+  end
+
+  def self.eval_or(context, tree)
+
+    tree[1..-1].each { |t|
+      result = eval_tree(context, t)
+      return result if result
+    }
+  end
+
+  def self.eval_and(context, tree)
+
+    tree[1..-1].inject(nil) { |_, t|
+
+      current = eval_tree(context, t)
+
+      return current unless current
+
+      current
+    }
+  end
+
+  def self.eval_not(context, tree)
+
+    not eval_tree(context, tree[1])
+  end
 end
 

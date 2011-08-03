@@ -4,6 +4,59 @@ require 'spec_helper'
 
 describe Subaltern do
 
+  describe 'if' do
+
+    it 'works (then)' do
+
+      Subaltern.eval(%{
+        if true
+          :ok
+        end
+      }).should == :ok
+    end
+
+    it 'works (complex expression)' do
+
+      Subaltern.eval(%{
+        if false or true
+          :ok
+        end
+      }).should == :ok
+    end
+
+    it 'works (else)' do
+
+      Subaltern.eval(%{
+        if false
+          :not_ok
+        else
+          :ok
+        end
+      }).should == :ok
+    end
+
+    it 'works postfix' do
+
+      Subaltern.eval(%{
+        'ok' if true
+      }).should == 'ok'
+    end
+  end
+
+  describe 'unless' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        unless false
+          :ok
+        else
+          :not_ok
+        end
+      }).should == :ok
+    end
+  end
+
   context '#each' do
 
     describe 'break' do
