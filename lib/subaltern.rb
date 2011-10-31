@@ -32,11 +32,7 @@ module Subaltern
 
   def self.eval(source, vars={})
 
-    begin
-      eval_tree(Context.new(nil, vars), RubyParser.new.parse(source).to_a)
-    rescue Return => r
-      r.value
-    end
+    Context.new(nil, vars).eval(source)
   end
 end
 

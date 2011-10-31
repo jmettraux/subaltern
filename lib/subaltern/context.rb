@@ -30,10 +30,21 @@ module Subaltern
 
     attr_reader :parent
 
-    def initialize(parent, vars)
+    # Create a new context
+    #
+    #   c = Subaltern.new
+    #     # or
+    #   c = Subaltern.new('var0' => 'value0', 'var1' => [ 1, 2, 3 ])
+    #
+    def initialize(parent={}, vars=nil)
 
-      @parent = parent
-      @variables = vars
+      if vars.nil?
+        @parent = nil
+        @variables = parent
+      else
+        @parent = parent
+        @variables = vars
+      end
     end
 
     def [](key)
@@ -56,6 +67,17 @@ module Subaltern
     def has_key?(key)
 
       @variables.has_key?(key)
+    end
+
+    # Eval a piece of Ruby code within this context.
+    #
+    def eval(source)
+
+      begin
+        Subaltern.eval_tree(self, RubyParser.new.parse(source).to_a)
+      rescue Return => r
+        r.value
+      end
     end
 
     protected
