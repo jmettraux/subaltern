@@ -125,56 +125,6 @@ type unpack upcase upcase! upto zip
   #++
 
   #
-  # Variable scope.
-  #
-  class Context
-
-    attr_reader :parent
-
-    def initialize(parent, vars)
-
-      @parent = parent
-      @variables = vars
-    end
-
-    def [](key)
-
-      return @variables[key] if @variables.has_key?(key)
-      return @parent[key] if @parent
-
-      raise UndefinedVariableError.new(key)
-    end
-
-    def []=(key, value)
-
-      @variables[key] = value unless set(key, value)
-
-      value
-    end
-
-    # Warning : shallow (doesn't lookup in parent context)
-    #
-    def has_key?(key)
-
-      @variables.has_key?(key)
-    end
-
-    protected
-
-    def set(key, value)
-
-      if has_key?(key)
-        @variables[key] = value
-        true
-      elsif @parent == nil
-        false
-      else
-        @parent.set(key, value)
-      end
-    end
-  end
-
-  #
   # I wish I could use throw/catch, but only Ruby 1.9.x allows for throwing
   # something else than a Symbol.
   # Going with a standard error for now.

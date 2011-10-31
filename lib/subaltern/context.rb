@@ -20,22 +20,56 @@
 # THE SOFTWARE.
 #++
 
-require 'ruby_parser'
-
-require 'subaltern/version'
-require 'subaltern/errors'
-require 'subaltern/context'
-require 'subaltern/evaluator'
-
 
 module Subaltern
 
-  def self.eval(source, vars={})
+  #
+  # Variable scope.
+  #
+  class Context
 
-    begin
-      eval_tree(Context.new(nil, vars), RubyParser.new.parse(source).to_a)
-    rescue Return => r
-      r.value
+    attr_reader :parent
+
+    def initialize(parent, vars)
+
+      @parent = parent
+      @variables = vars
+    end
+
+    def [](key)
+
+      return @variables[key] if @variables.has_key?(key)
+      return @parent[key] if @parent
+
+      raise UndefinedVariableError.new(key)
+    end
+
+    def []=(key, value)
+
+      @variables[key] = value unless set(key, value)
+
+      value
+    end
+
+    # Warning : shallow (doesn't lookup in parent context)
+    #
+    def has_key?(key)
+
+      @variables.has_key?(key)
+    end
+
+    protected
+
+    def set(key, value)
+
+      if has_key?(key)
+        @variables[key] = value
+        true
+      elsif @parent == nil
+        false
+      else
+        @parent.set(key, value)
+      end
     end
   end
 end
