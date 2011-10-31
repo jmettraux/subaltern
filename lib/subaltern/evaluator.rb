@@ -626,5 +626,13 @@ type unpack upcase upcase! upto zip
 
     Command.narrow(result)
   end
+
+  def self.eval_for(context, tree)
+
+    values = eval_tree(context, tree[1])
+    block = Block.new(tree[2..-1])
+
+    values.each { |v| block.call(context, [ v ]) }
+  end
 end
 

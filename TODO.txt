@@ -21,4 +21,9 @@
 [ ] rescue (maybe rescue nil is useful)
 
 [ ] redo/retry (low priority)
+    verify if retry is still in Ruby
+
+[ ] unary - / +
+[ ] flip-flops
+[ ] ranges
 
