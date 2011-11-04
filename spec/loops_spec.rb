@@ -65,7 +65,15 @@ describe Subaltern do
       }).should == [ 1, 2, 3, 4 ]
     end
 
-    it 'does not create a new context'
+    it 'does not create a new context' do
+
+      Subaltern.eval(%{
+        for i in [ 1 ]
+          a = i
+        end
+        a
+      }).should == 1
+    end
   end
 
   describe 'for k,v in h' do

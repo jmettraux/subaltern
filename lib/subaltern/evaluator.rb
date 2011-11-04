@@ -237,11 +237,11 @@ type unpack upcase upcase! upto zip
       @tree = tree[1]
     end
 
-    def call(context, arguments)
+    def call(context, arguments, new_context=true)
 
       arguments = arguments.flatten
 
-      con = Context.new(context, {})
+      con = new_context ? Context.new(context, {}) : context
 
       @arglist.each_with_index { |a, i| con[a] = arguments[i] }
 
@@ -582,7 +582,7 @@ type unpack upcase upcase! upto zip
     values = eval_tree(context, tree[1])
     block = Block.new(tree[2..-1])
 
-    values.each { |v| block.call(context, [ v ]) }
+    values.each { |v| block.call(context, [ v ], false) }
   end
 end
 

@@ -15,7 +15,7 @@
 [ ] break / next with function (method is already OK)
 
 [o] while / until
-[ ] for
+[o] for
 [ ] Kernel.loop
 
 [ ] rescue (maybe rescue nil is useful)
