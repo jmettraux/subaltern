@@ -24,6 +24,6 @@
     verify if retry is still in Ruby
 
 [o] unary - / +
+[o] ranges
 [ ] flip-flops
-[ ] ranges
 

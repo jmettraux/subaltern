@@ -26,6 +26,16 @@ describe Subaltern do
     end
   end
 
+  describe 'ranges' do
+
+    it 'is returned as is' do
+
+      Subaltern.eval(%{
+        1..5
+      }).should == (1..5)
+    end
+  end
+
   describe 'a sequence of code' do
 
     it 'is executed line by line' do
