@@ -113,7 +113,13 @@ type unpack upcase upcase! upto zip
     ],
     Class => %w[
 ===
-    ]
+    ],
+    TrueClass => %w[
+==
+    ],
+    FalseClass => %w[
+==
+    ],
   }
 
   WHITELISTED_CONSTANTS =
