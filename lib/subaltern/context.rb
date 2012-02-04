@@ -38,13 +38,8 @@ module Subaltern
     #
     def initialize(parent={}, vars=nil)
 
-      if vars.nil?
-        @parent = nil
-        @variables = parent
-      else
-        @parent = parent
-        @variables = vars
-      end
+      @parent, @variables = [ parent, vars ]
+      @parent, @variables = [ nil, parent ] if vars.nil?
     end
 
     def [](key)
