@@ -583,9 +583,9 @@ type unpack upcase upcase! upto zip
     values.each { |v| block.call(context, [ v ], false) }
   end
 
-  def self.eval_loop(context, tree)
+  def self.eval_rescue(context, tree)
 
-    pp tree
+    Subaltern.eval_tree(context, tree[2][2])
   end
 end
 

@@ -234,5 +234,18 @@ describe Subaltern do
       }).should == 1
     end
   end
+
+  describe 'rescue' do
+
+    describe 'rescue :x' do
+
+      it 'works' do
+
+        Subaltern.eval(%{
+          1 / 0 rescue :limit
+        }).should == :limit
+      end
+    end
+  end
 end
 

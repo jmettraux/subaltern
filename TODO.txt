@@ -18,7 +18,8 @@
 [o] for
 [o] Kernel.loop
 
-[ ] rescue (maybe rescue nil is useful)
+[o] rescue :x
+[x] begin/rescue
 
 [ ] redo/retry (low priority)
     verify if retry is still in Ruby
@@ -26,4 +27,6 @@
 [o] unary - / +
 [o] ranges
 [ ] flip-flops
+
+[ ] (spec) brackets ()
 
