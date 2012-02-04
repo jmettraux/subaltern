@@ -23,7 +23,7 @@
 [ ] redo/retry (low priority)
     verify if retry is still in Ruby
 
-[ ] unary - / +
+[o] unary - / +
 [ ] flip-flops
 [ ] ranges
 

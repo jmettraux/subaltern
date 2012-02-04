@@ -91,5 +91,15 @@ describe Subaltern do
       }).should == 'A'
     end
   end
+
+  describe 'unary -' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        [ 1 + -5, - 5 ]
+      }).should == [ -4, -5 ]
+    end
+  end
 end
 
