@@ -38,6 +38,8 @@ module Subaltern
     #
     def initialize(parent={}, vars=nil)
 
+      vars.merge!(Subaltern.kernel) if parent.nil?
+
       @parent, @variables = [ parent, vars ]
       @parent, @variables = [ nil, parent ] if vars.nil?
     end

@@ -413,8 +413,6 @@ type unpack upcase upcase! upto zip
 
   def self.eval_defn(context, tree)
 
-    #p tree
-
     name = tree[1].to_s
     context[name] = Function.new(tree)
 
@@ -494,7 +492,7 @@ type unpack upcase upcase! upto zip
 
     if eval_tree(context, tree[1])
       eval_tree(context, tree[2])
-    else
+    elsif tree[3]
       eval_tree(context, tree[3])
     end
   end
@@ -583,6 +581,11 @@ type unpack upcase upcase! upto zip
     block = Block.new(tree[2..-1])
 
     values.each { |v| block.call(context, [ v ], false) }
+  end
+
+  def self.eval_loop(context, tree)
+
+    pp tree
   end
 end
 

@@ -20,20 +20,45 @@
 # THE SOFTWARE.
 #++
 
-require 'ruby_parser'
-
-require 'subaltern/version'
-require 'subaltern/errors'
-require 'subaltern/context'
-require 'subaltern/evaluator'
-require 'subaltern/kernel'
-
 
 module Subaltern
 
-  def self.eval(source, vars={})
+  def self.kernel
 
-    Context.new(nil, vars).eval(source)
+    {
+      'loop' => LoopFunction.new
+    }
+  end
+
+  class LoopFunction < Function
+
+    def initialize
+    end
+
+    def call(context, tree)
+
+      return nil unless context['__block']
+        # a real Ruby would return an Enumerator instance
+
+      con = Context.new(context, {})
+
+      loop do
+
+        begin
+
+          r = context['__block'].call(con, [], false)
+            # new_context is false
+
+        rescue Command => c
+
+          case c.name
+            when 'break' then break c
+            when 'next' then next c
+            else raise c
+          end
+        end
+      end
+    end
   end
 end
 

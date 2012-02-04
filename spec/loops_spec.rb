@@ -92,7 +92,17 @@ describe Subaltern do
 
   describe 'loop' do
 
-    it 'works'
+    it 'works' do
+
+      Subaltern.eval(%{
+        a = 0
+        loop do
+          a = a + 1
+          break if a > 7
+        end
+        a
+      }).should == 8
+    end
   end
 end
 

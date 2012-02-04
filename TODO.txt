@@ -16,7 +16,7 @@
 
 [o] while / until
 [o] for
-[ ] Kernel.loop
+[o] Kernel.loop
 
 [ ] rescue (maybe rescue nil is useful)
 
