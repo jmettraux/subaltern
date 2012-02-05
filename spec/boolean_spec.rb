@@ -116,6 +116,16 @@ describe Subaltern do
     end
   end
 
+  describe '==' do
+
+    it 'returns true or false' do
+
+      Subaltern.eval(%{
+        [ true == false, true == true, false == true, false == false ]
+      }).should == [ false, true, false, true ]
+    end
+  end
+
   describe '===' do
 
     it 'works' do
