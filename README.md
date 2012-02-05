@@ -8,6 +8,8 @@ Meant to interpret sandboxed ruby code.
 
 ## usage
 
+### Subaltern.eval
+
 Innocent code:
 
     require 'subaltern'
@@ -23,6 +25,10 @@ Bad code:
 
     Subaltern.eval("''.eval('1 + 1')")
       # => raises a Subaltern::NonWhitelistedMethodError
+
+### Subaltern.add_methods
+
+TODO
 
 
 ## issues

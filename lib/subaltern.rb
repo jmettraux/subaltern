@@ -35,5 +35,26 @@ module Subaltern
 
     Context.new(nil, vars).eval(source)
   end
+
+  def self.add_methods(object, source)
+
+    tree = RubyParser.new.parse(source).to_a
+
+    methods = tree[0] == :block ? tree[1..-1] : [ tree ]
+
+    methods.each do |_, name, args, body|
+
+      args = args[1..-1]
+
+      vars = '{ ' + args.map { |arg| "'#{arg}' => #{arg}" }.join(', ') + ' }'
+
+      object.instance_eval(%{
+
+        def #{name}(#{args.map(&:to_s).join(', ')})
+          Subaltern.eval_tree(Context.new(nil, #{vars}), #{body.inspect})
+        end
+      })
+    end
+  end
 end
 
