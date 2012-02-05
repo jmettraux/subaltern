@@ -2,7 +2,10 @@
 = subaltern CHANGELOG.txt
 
 
-== subaltern - 1.0.0   not yet released
+== subaltern - 1.0.1   not yet released
+
+
+== subaltern - 1.0.0   released 2012/02/04
 
 - initial release
 

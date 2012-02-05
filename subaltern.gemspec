@@ -1,13 +1,12 @@
-# encoding: utf-8
-
-require File.join(File.dirname(__FILE__), 'lib/subaltern/version')
-  # bundler wants absolute path
-
 
 Gem::Specification.new do |s|
 
   s.name = 'subaltern'
-  s.version = Subaltern::VERSION
+
+  s.version = File.read(
+    File.expand_path('../lib/subaltern/version.rb', __FILE__)
+  ).match(/ VERSION *= *['"]([^'"]+)/)[1]
+
   s.platform = Gem::Platform::RUBY
   s.authors = [ 'John Mettraux' ]
   s.email = [ 'jmettraux@gmail.com' ]
