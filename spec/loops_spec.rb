@@ -86,7 +86,7 @@ describe Subaltern do
           a << k + ':' + v
         end
         a
-      }).should == %w[ a:b c:d ]
+      }).sort.should == %w[ a:b c:d ]
     end
   end
 
