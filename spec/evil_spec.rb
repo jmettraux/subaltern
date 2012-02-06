@@ -12,6 +12,16 @@ describe Subaltern do
 
   context 'evil' do
 
+    describe "eval('1 + 1')" do
+
+      it 'raises' do
+
+        lambda {
+          Subaltern.eval("eval('1 + 1')")
+        }.should raise_error(Subaltern::UndefinedVariableError)
+      end
+    end
+
     describe "''.eval('1 + 1')" do
 
       it 'raises' do
