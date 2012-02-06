@@ -1,6 +1,8 @@
 
 # subaltern
 
+[![Build Status](https://secure.travis-ci.org/jmettraux/subaltern.png)](http://travis-ci.org/jmettraux/subaltern)
+
 Subaltern is a Ruby self-interpreter. It's sub-functional, it's a subaltern.
 
 Meant to interpret sandboxed ruby code.
