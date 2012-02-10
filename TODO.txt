@@ -28,7 +28,9 @@
 [o] ranges
 [ ] flip-flops
 
-[ ] (spec) brackets ()
+[o] (spec) brackets ()
 
 [o] rename Subaltern.kernel to .core
+
+[ ] ? Thread + $SAFE
 

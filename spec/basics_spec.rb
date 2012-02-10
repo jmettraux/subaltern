@@ -111,5 +111,15 @@ describe Subaltern do
       }).should == [ -4, -5 ]
     end
   end
+
+  describe 'brackets (' do
+
+    it 'works' do
+
+      Subaltern.eval(%{
+        (1 + 2) * 3
+      }).should == 9
+    end
+  end
 end
 
