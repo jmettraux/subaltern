@@ -26,7 +26,7 @@ require 'subaltern/version'
 require 'subaltern/errors'
 require 'subaltern/context'
 require 'subaltern/evaluator'
-require 'subaltern/kernel'
+require 'subaltern/core'
 
 
 module Subaltern

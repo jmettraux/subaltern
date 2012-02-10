@@ -23,7 +23,7 @@
 
 module Subaltern
 
-  def self.kernel
+  def self.core
 
     {
       'loop' => LoopFunction.new

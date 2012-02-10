@@ -30,5 +30,5 @@
 
 [ ] (spec) brackets ()
 
-[ ] rename Subaltern.kernel... ?
+[o] rename Subaltern.kernel to .core
 
