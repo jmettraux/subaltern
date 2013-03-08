@@ -24,7 +24,8 @@ an interpreter of a subset of Ruby, written in Ruby
     '*.gemspec', '*.txt', '*.rdoc', '*.md', '*.mdown'
   ]
 
-  s.add_runtime_dependency 'ruby_parser', '>= 2.0.6'
+  #s.add_runtime_dependency 'ruby_parser', '>= 2.0.6'
+  s.add_runtime_dependency 'ruby_parser', '~> 2.3'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
