@@ -69,6 +69,7 @@ eql? equal? even? fdiv floor hash id id2name inspect
 instance_of? integer? is_a? kind_of? modulo next nil? nonzero? object_id odd?
 ord prec prec_f prec_i pred quo remainder respond_to? round size step succ tap
 times to_a to_enum to_f to_i to_int to_s to_sym truncate type upto zero? | ~
+!=
     ],
     Hash => %w[
 == === =~ [] []= __id__
@@ -109,16 +110,16 @@ respond_to? reverse reverse! reverse_each rindex rjust rpartition rstrip
 rstrip! scan select size slice slice! sort sort_by split squeeze squeeze!
 start_with? strip strip! sub sub! succ succ! sum swapcase swapcase! take
 take_while tap to_a to_enum to_f to_i to_s to_str to_sym tr tr! tr_s tr_s!
-type unpack upcase upcase! upto zip
+type unpack upcase upcase! upto zip !
     ],
     Class => %w[
 ===
     ],
     TrueClass => %w[
-==
+== !
     ],
     FalseClass => %w[
-==
+== !
     ],
   }
 
@@ -186,22 +187,31 @@ type unpack upcase upcase! upto zip
 
       @tree = tree
 
-      # TODO : eventually, follow Block's example and split the tree here
+      @meth_args = []
+      @meth_arg_defaults = {}
+
+      tree[2][1..-1].each do |arg|
+
+        if arg.is_a?(Array)
+          name = arg[1].to_s
+          @meth_args << name
+          @meth_arg_defaults[name] = arg[2]
+        else
+          @meth_args << arg.to_s
+        end
+      end
     end
 
     def call(context, tree)
 
-      meth_args = @tree[2][1..-1]
-      l = meth_args.last
-      meth_arg_defaults = l.is_a?(Array) && l.first == :block ? l[1..-1] : []
-      call_args = tree[3][1..-1].collect { |t| Subaltern.eval_tree(context, t) }
+      call_args = tree[3..-1].collect { |t| Subaltern.eval_tree(context, t) }
 
       con = Context.new(context, {})
 
       # bind arguments
 
       call_args.each_with_index do |arg, i|
-        name = meth_args[i].to_s
+        name = @meth_args[i]
         if m = name.match(/^\*(.+)$/)
           con[m[1]] = call_args[i..-1]
           break
@@ -211,14 +221,13 @@ type unpack upcase upcase! upto zip
 
       # bind default arguments (when necessary)
 
-      meth_arg_defaults.each do |d|
-        name = d[1].to_s
-        con[name] = Subaltern.eval_tree(context, d[2]) unless con.has_key?(name)
+      @meth_arg_defaults.each do |name, tree|
+        con[name] = Subaltern.eval_tree(context, tree) unless con.has_key?(name)
       end
 
       # is there a block ?
 
-      if m = (meth_args.last || '').to_s.match(/^&(.+)/)
+      if m = (@meth_args.last || '').match(/^&(.+)/)
         con[m[1]] = context['__block']
       end
 
@@ -256,13 +265,9 @@ type unpack upcase upcase! upto zip
 
     protected
 
-    def refine(tree)
+    def refine(arg)
 
-      if tree[0] == :masgn
-        tree[1][1..-1].collect { |t| refine(t) }
-      else # :lasgn
-        tree[1].to_s
-      end
+      arg.is_a?(Array) ? arg[1..-1].collect { |e| refine(e) } : arg.to_s
     end
   end
 
@@ -295,8 +300,9 @@ type unpack upcase upcase! upto zip
   rescue NoMethodError => nme
     puts '-' * 80
     p nme
-    p tree
-    puts nme.backtrace.join("\n")
+    pp tree
+    puts nme.backtrace[0, 7].join("\n")
+    puts '...'
     puts '-' * 80
     raise nme
   end
@@ -368,7 +374,7 @@ type unpack upcase upcase! upto zip
 
     target = eval_tree(context, tree[1])
     method = tree[2].to_s
-    args = tree[3][1..-1]
+    args = tree[3..-1]
 
     if is_javascripty_hash_lookup?(target, method, args)
       return target[method]
@@ -425,11 +431,6 @@ type unpack upcase upcase! upto zip
     nil
   end
 
-  def self.eval_scope(context, tree)
-
-    eval_tree(context, tree[1])
-  end
-
   def self.eval_return(context, tree)
 
     raise(Return.new(eval_tree(context, tree[1])))
@@ -454,7 +455,7 @@ type unpack upcase upcase! upto zip
 
       bounce(target, method)
 
-      method_args = tree[1][3][1..-1].collect { |t| eval_tree(context, t) }
+      method_args = tree[1][3..-1].collect { |t| eval_tree(context, t) }
       block = Block.new(tree[2..-1])
 
       command = nil
@@ -521,11 +522,6 @@ type unpack upcase upcase! upto zip
 
       current
     }
-  end
-
-  def self.eval_not(context, tree)
-
-    not eval_tree(context, tree[1])
   end
 
   def self.eval_case(context, tree)

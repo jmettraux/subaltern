@@ -77,6 +77,16 @@ describe Subaltern do
       }).should == 4
     end
 
+    it 'accepts functions with args and block' do
+
+      Subaltern.eval(%{
+        def hello(start)
+          start + yield
+        end
+        hello(4) { 3 }
+      }).should == 7
+    end
+
     it 'accepts functions with explicit blocks' do
 
       Subaltern.eval(%{
