@@ -7,6 +7,8 @@ Subaltern is a Ruby self-interpreter. It's sub-functional, it's a subaltern.
 
 Meant to interpret sandboxed ruby code.
 
+Works with ruby >= 1.9.
+
 
 ## usage
 
