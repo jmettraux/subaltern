@@ -187,10 +187,15 @@ type unpack upcase upcase! upto zip !
 
       @tree = tree
 
+      prepare_args(tree.children[1].children)
+    end
+
+    def prepare_args(arg_tree)
+
       @args = []
       @optargs = {}
 
-      tree.children[1].children.each do |t|
+      arg_tree.each do |t|
         @args << [ t.type, t.children.first ]
         @optargs[t.children.first] = t.children.last if t.type == :optarg
       end
@@ -244,87 +249,49 @@ type unpack upcase upcase! upto zip !
     def call(context, args)
 
       begin
-
-        Subaltern.eval_tree(
-          new_context(context, args),
-          @tree.children.last)
-
+        do_call(context, args)
       rescue Return => r
-
         r.value
       end
-    end
-  end
-
-  class Block
-    # TODO: eventually merge with Function
-
-    def initialize(context, tree)
-
-      @context = context
-      @tree = tree
-    end
-
-    def call(*args)
-
-      do_call(@conext, args)
     end
 
     def do_call(context, args)
 
-      # TODO: bind args
-
       Subaltern.eval_tree(
-        context,
+        new_context(context, args),
         @tree.children.last)
     end
   end
 
-#  #
-#  # Wrapper for Ruby blocks.
-#  #
-#  class Block
-#
-#    def initialize(tree)
-#
-#      @arglist = Array(refine(tree[0] || [])).flatten
-#      @tree = tree[1]
-#    end
-#
-#    def call(context, arguments, new_context=true)
-#
-#      arguments = arguments.flatten
-#
-#      con = new_context ? Context.new(context, {}) : context
-#
-#      @arglist.each_with_index { |a, i| con[a] = arguments[i] }
-#
-#      Subaltern.eval_tree(con, @tree)
-#    end
-#
-#    protected
-#
-#    def refine(arg)
-#
-#      arg.is_a?(Array) ? arg[1..-1].collect { |e| refine(e) } : arg.to_s
-#    end
-#  end
+  class Block < Function
 
-  # Will raise an exception if calling that method on this target
-  # is not whitelisted (or is blacklisted).
-  #
-  def self.bounce(target, method)
+    def initialize(context, tree)
 
-    if BLACKLIST.include?(method.to_s)
-      raise BlacklistedMethodError.new(target.class)
+      super(tree)
+      @context = context
     end
-    unless WHITELIST.keys.include?(target.class)
-      raise NonWhitelistedClassError.new(target.class)
-    end
-    unless WHITELIST[target.class].include?(method.to_s)
-      raise NonWhitelistedMethodError.new(target.class, method)
+
+    def call(*args)
+
+      do_call(@context, args)
     end
   end
+
+#  # Will raise an exception if calling that method on this target
+#  # is not whitelisted (or is blacklisted).
+#  #
+#  def self.bounce(target, method)
+#
+#    if BLACKLIST.include?(method.to_s)
+#      raise BlacklistedMethodError.new(target.class)
+#    end
+#    unless WHITELIST.keys.include?(target.class)
+#      raise NonWhitelistedClassError.new(target.class)
+#    end
+#    unless WHITELIST[target.class].include?(method.to_s)
+#      raise NonWhitelistedMethodError.new(target.class, method)
+#    end
+#  end
 
   #--
   # the eval_ methods
