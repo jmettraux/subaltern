@@ -35,7 +35,7 @@ describe Subaltern do
       }).should == [ 5, 7 ]
     end
 
-    it 'accepts functions with starred parameters' do
+    it 'accepts functions with splat args' do
 
       Subaltern.eval(%{
         def concat(a, *args)
@@ -127,6 +127,16 @@ describe Subaltern do
           hello(3) { |start| start * 3 }
         })
       }.should raise_error(Subaltern::NonWhitelistedMethodError)
+    end
+
+    it 'raises when a varname is called as a function' do
+
+      lambda {
+        p Subaltern.eval(%{
+          a = 1
+          a()
+        })
+      }.should raise_error(Subaltern::UndefinedMethodError)
     end
   end
 end

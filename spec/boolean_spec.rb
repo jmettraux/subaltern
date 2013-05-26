@@ -50,35 +50,63 @@ describe Subaltern do
 
   describe 'or' do
 
-    it 'works' do
+    it 'works (false or true)' do
 
       Subaltern.eval(%{
         false or true
       }).should == true
     end
 
-    it 'works (||)' do
+    it 'works (false or false)' do
+
+      Subaltern.eval(%{
+        false or false
+      }).should == false
+    end
+
+    it 'works (false || true)' do
 
       Subaltern.eval(%{
         false || true
       }).should == true
     end
+
+    it 'works (false || false)' do
+
+      Subaltern.eval(%{
+        false || false
+      }).should == false
+    end
   end
 
   describe 'and' do
 
-    it 'works' do
+    it 'works (true and true)' do
 
       Subaltern.eval(%{
         true and true
       }).should == true
     end
 
-    it 'works (&&)' do
+    it 'works (true and false)' do
+
+      Subaltern.eval(%{
+        true and false
+      }).should == false
+    end
+
+    it 'works (true && true)' do
 
       Subaltern.eval(%{
         true && true
       }).should == true
+    end
+
+    it 'works (true && false)' do
+
+      Subaltern.eval(%{
+        true && false
+      }).should == false
     end
   end
 

@@ -7,7 +7,7 @@ Subaltern is a Ruby self-interpreter. It's sub-functional, it's a subaltern.
 
 Meant to interpret sandboxed ruby code.
 
-Works with ruby >= 1.9.
+Works with ruby >= 1.9 (TODO: check if with "parser" this still holds).
 
 
 ## usage
@@ -16,19 +16,23 @@ Works with ruby >= 1.9.
 
 Innocent code:
 
-    require 'subaltern'
+```ruby
+  require 'subaltern'
 
-    Subaltern.eval('1 + 1')
-      # => 2
+  Subaltern.eval('1 + 1')
+    # => 2
 
-    c = Subaltern::Context.new('a' => 7)
-    c.eval('a + 2')
-      # => 9
+  c = Subaltern::Context.new('a' => 7)
+  c.eval('a + 2')
+    # => 9
+```
 
 Bad code:
 
-    Subaltern.eval("''.eval('1 + 1')")
-      # => raises a Subaltern::NonWhitelistedMethodError
+```ruby
+  Subaltern.eval("''.eval('1 + 1')")
+    # => raises a Subaltern::NonWhitelistedMethodError
+```
 
 ### Subaltern.add_methods
 

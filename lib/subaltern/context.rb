@@ -68,13 +68,30 @@ module Subaltern
 
     # Eval a piece of Ruby code within this context.
     #
-    def eval(source)
+    def eval(source_or_tree)
+
+      tree =
+        if source_or_tree.is_a?(String)
+          Parser::CurrentRuby.parse(source_or_tree)
+        else
+          source_or_tree
+        end
 
       begin
-        Subaltern.eval_tree(self, RubyParser.new.parse(source).to_a)
+        Subaltern.eval_tree(self, tree)
       rescue Return => r
         r.value
       end
+    end
+
+    # Unlike #[] doesn't raise UndefinedVariableError.
+    #
+    def lookup(key)
+
+      return @variables[key] if @variables.has_key?(key)
+      return @parent.lookup(key) if @parent
+
+      nil
     end
 
     protected

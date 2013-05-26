@@ -18,7 +18,7 @@ describe Subaltern do
 
       it 'happens' do
 
-        Subaltern.eval('"ab#{c}de"', 'c' => 'C').should == 'abCde'
+        Subaltern.eval('"ab#{c}de"', :c => 'C').should == 'abCde'
       end
     end
   end

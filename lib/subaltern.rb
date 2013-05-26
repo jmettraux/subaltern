@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #++
 
-require 'ruby_parser'
+require 'parser/current'
 
 require 'subaltern/version'
 require 'subaltern/errors'

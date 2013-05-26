@@ -72,6 +72,9 @@ module Subaltern
     end
   end
 
+  class UndefinedMethodError < SubalternError
+  end
+
   class AccessError < SubalternError
   end
 end

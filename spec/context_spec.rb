@@ -15,7 +15,7 @@ describe Subaltern do
 
       it 'is OK to pass initial variables' do
 
-        Subaltern::Context.new('a' => 7).eval('a + 1').should == 8
+        Subaltern::Context.new(:a => 7).eval('a + 1').should == 8
       end
     end
   end

@@ -9,8 +9,9 @@ describe Subaltern do
     it 'raises a Racc::ParseError' do
 
       lambda {
-        Subaltern.eval('adsfad:12')
-      }.should raise_error(Racc::ParseError)
+        #Subaltern.eval('adsfad:12')
+        Subaltern.eval('def nada')
+      }.should raise_error(Parser::SyntaxError)
     end
   end
 
@@ -19,7 +20,7 @@ describe Subaltern do
     it 'is returned as is' do
 
       [
-        1, "hello", 1.0, true, false, nil
+        1, 'hello', 1.0, true, false, :a, nil
       ].each do |lit|
         Subaltern.eval(lit.inspect).should == lit
       end
@@ -58,7 +59,7 @@ describe Subaltern do
 
     it 'works' do
 
-      Subaltern.eval('a', { 'a' => 1 }).should == 1
+      Subaltern.eval('a', { :a => 1 }).should == 1
     end
   end
 
@@ -87,6 +88,10 @@ describe Subaltern do
       Subaltern.eval(%{
         /(abc)/.match('abc')[1]
       }).should == 'abc'
+
+      Subaltern.eval(%{
+        /abc/im.match('ABC')[0]
+      }).should == 'ABC'
     end
   end
 

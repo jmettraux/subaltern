@@ -124,8 +124,8 @@ type unpack upcase upcase! upto zip !
   }
 
   WHITELISTED_CONSTANTS =
-    WHITELIST.keys.collect { |k| k.name.to_sym } +
-    [ :FalseClass, :TrueClass ]
+    WHITELIST.keys.collect { |k| k.to_s } +
+    %w[ FalseClass TrueClass ]
 
   #--
   # helper classes
@@ -187,89 +187,102 @@ type unpack upcase upcase! upto zip !
 
       @tree = tree
 
-      @meth_args = []
-      @meth_arg_defaults = {}
+      @args = []
+      @optargs = {}
 
-      tree[2][1..-1].each do |arg|
-
-        if arg.is_a?(Array)
-          name = arg[1].to_s
-          @meth_args << name
-          @meth_arg_defaults[name] = arg[2]
-        else
-          @meth_args << arg.to_s
-        end
+      tree.children[1].children.each do |t|
+        @args << [ t.type, t.children.first ]
+        @optargs[t.children.first] = t.children.last if t.type == :optarg
       end
     end
 
-    def call(context, tree)
+    def new_context(parent_context, call_args)
 
-      call_args = tree[3..-1].collect { |t| Subaltern.eval_tree(context, t) }
+      con = Context.new(parent_context, {})
 
-      con = Context.new(context, {})
+      if
+        call_args.length > @args.length &&
+        ! @args.find { |a| a[0] == :restarg }
+      then
+        raise ArgumentError.new(
+          "wrong number of arguments (#{call_args.length} for #{@args.length})")
+      end
 
-      # bind arguments
+      args = @args.dup
+      cargs = call_args.dup
+      first, shift = :first, :shift
 
-      call_args.each_with_index do |arg, i|
-        name = @meth_args[i]
-        if m = name.match(/^\*(.+)$/)
-          con[m[1]] = call_args[i..-1]
-          break
+      loop do
+
+        break if args.empty?
+
+        type, name = args.send(first)
+
+        if type == :restarg
+          if first == :first
+            first, shift = :last, :pop
+          else
+            con[name] = cargs
+            break
+          end
+        else
+          args.send(shift)
+          con[name] =
+            if type == :optarg && cargs.empty?
+              Subaltern.eval_tree(parent_context, @optargs[name])
+            else
+              cargs.send(shift)
+            end
         end
-        con[name] = arg
       end
 
-      # bind default arguments (when necessary)
+      con
+    end
 
-      @meth_arg_defaults.each do |name, tree|
-        con[name] = Subaltern.eval_tree(context, tree) unless con.has_key?(name)
-      end
-
-      # is there a block ?
-
-      if m = (@meth_args.last || '').match(/^&(.+)/)
-        con[m[1]] = context['__block']
-      end
-
-      # now do it
+    def call(context, args)
 
       begin
-        Subaltern.eval_tree(con, @tree[3])
+
+        Subaltern.eval_tree(
+          new_context(context, args),
+          @tree.children.last)
+
       rescue Return => r
+
         r.value
       end
     end
   end
 
-  #
-  # Wrapper for Ruby blocks.
-  #
-  class Block
-
-    def initialize(tree)
-
-      @arglist = Array(refine(tree[0] || [])).flatten
-      @tree = tree[1]
-    end
-
-    def call(context, arguments, new_context=true)
-
-      arguments = arguments.flatten
-
-      con = new_context ? Context.new(context, {}) : context
-
-      @arglist.each_with_index { |a, i| con[a] = arguments[i] }
-
-      Subaltern.eval_tree(con, @tree)
-    end
-
-    protected
-
-    def refine(arg)
-
-      arg.is_a?(Array) ? arg[1..-1].collect { |e| refine(e) } : arg.to_s
-    end
-  end
+#  #
+#  # Wrapper for Ruby blocks.
+#  #
+#  class Block
+#
+#    def initialize(tree)
+#
+#      @arglist = Array(refine(tree[0] || [])).flatten
+#      @tree = tree[1]
+#    end
+#
+#    def call(context, arguments, new_context=true)
+#
+#      arguments = arguments.flatten
+#
+#      con = new_context ? Context.new(context, {}) : context
+#
+#      @arglist.each_with_index { |a, i| con[a] = arguments[i] }
+#
+#      Subaltern.eval_tree(con, @tree)
+#    end
+#
+#    protected
+#
+#    def refine(arg)
+#
+#      arg.is_a?(Array) ? arg[1..-1].collect { |e| refine(e) } : arg.to_s
+#    end
+#  end
 
   # Will raise an exception if calling that method on this target
   # is not whitelisted (or is blacklisted).
@@ -295,7 +308,7 @@ type unpack upcase upcase! upto zip !
   #
   def self.eval_tree(context, tree)
 
-    send("eval_#{tree.first}", context, tree)
+    send("eval_#{tree.type}", context, tree)
 
   rescue NoMethodError => nme
     puts '-' * 80
@@ -307,287 +320,359 @@ type unpack upcase upcase! upto zip !
     raise nme
   end
 
-  %w[ false true nil ].each do |key|
-    instance_eval %{ def eval_#{key}(context, tree); #{key}; end }
+  def self.eval_begin(context, tree)
+
+    tree.children.inject(nil) { |result, t| eval_tree(context, t) }
   end
 
-  def self.eval_lit(context, tree)
+  def self.eval_def(context, tree)
 
-    tree[1]
-  end
-
-  def self.eval_str(context, tree)
-
-    tree[1]
-  end
-
-  def self.eval_dstr(context, tree)
-
-    tree[1..-1].collect { |t|
-      t.is_a?(String) ? t : eval_tree(context, t)
-    }.join
-  end
-
-  def self.eval_evstr(context, tree)
-
-    eval_tree(context, tree[1])
-  end
-
-  def self.eval_xstr(context, tree)
-
-    raise AccessError.new("no backquoting allowed (#{tree[1]})")
-  end
-
-  def self.eval_dxstr(context, tree)
-
-    raise AccessError.new("no backquoting allowed (#{tree[1]})")
-  end
-
-  def self.eval_array(context, tree)
-
-    tree[1..-1].collect { |t| eval_tree(context, t) }
-  end
-
-  def self.eval_hash(context, tree)
-
-    Hash[*eval_array(context, tree)]
-  end
-
-  def self.is_javascripty_hash_lookup?(target, method, args)
-
-    target.is_a?(Hash) &&
-    args.empty? &&
-    ( ! WHITELIST[Hash].include?(method)) &&
-    target.has_key?(method)
-  end
-
-  def self.eval_call(context, tree)
-
-    if tree[1] == nil
-      # variable lookup or function application...
-
-      value = eval_lvar(context, tree[1, 2])
-
-      return value.call(context, tree) if value.is_a?(Subaltern::Function)
-      return value
-    end
-
-    target = eval_tree(context, tree[1])
-    method = tree[2].to_s
-    args = tree[3..-1]
-
-    if is_javascripty_hash_lookup?(target, method, args)
-      return target[method]
-    end
-
-    args = args.collect { |t| eval_tree(context, t) }
-
-    return target.call(context, args) if target.is_a?(Subaltern::Block)
-
-    bounce(target, method)
-
-    target.send(method, *args)
-  end
-
-  def self.eval_block(context, tree)
-
-    tree[1..-1].collect { |t| eval_tree(context, t) }.last
-  end
-
-  def self.eval_lasgn(context, tree)
-
-    context[tree[1].to_s] = eval_tree(context, tree[2])
-  end
-
-  def self.eval_lvar(context, tree)
-
-    context[tree[1].to_s]
-  end
-
-  def self.eval_gvar(context, tree)
-
-    raise AccessError.new("no global variables (#{tree[1]})")
-  end
-
-  def self.eval_colon2(context, tree)
-
-    raise AccessError.new("no access to constants (#{tree[1]})")
-  end
-
-  def self.eval_const(context, tree)
-
-    if WHITELISTED_CONSTANTS.include?(tree[1])
-      return Kernel.const_get(tree[1].to_s)
-    end
-
-    raise AccessError.new("no access to constants (#{tree[1]})")
-  end
-
-  def self.eval_defn(context, tree)
-
-    name = tree[1].to_s
-    context[name] = Function.new(tree)
+    context[tree.children.first] = Function.new(tree)
 
     nil
   end
 
-  def self.eval_return(context, tree)
+  def self.atom(context, tree)
 
-    raise(Return.new(eval_tree(context, tree[1])))
+    tree.children.first
   end
 
-  def self.eval_iter(context, tree)
+  def self.boolean(context, tree)
 
-    if tree[1][1] == nil
+    tree.type == :true
+  end
+
+  self.instance_eval do
+
+    alias eval_int atom
+    alias eval_str atom
+    alias eval_float atom
+    alias eval_sym atom
+
+    alias eval_true boolean
+    alias eval_false boolean
+  end
+
+  def self.eval_nil(context, tree)
+
+    nil
+  end
+
+#  def self.eval_call(context, tree)
+#
+#    if tree[1] == nil
+#      # variable lookup or function application...
+#
+#      value = eval_lvar(context, tree[1, 2])
+#
+#      return value.call(context, tree) if value.is_a?(Subaltern::Function)
+#      return value
+#    end
+#
+#    target = eval_tree(context, tree[1])
+#    method = tree[2].to_s
+#    args = tree[3..-1]
+#
+#    if is_javascripty_hash_lookup?(target, method, args)
+#      return target[method]
+#    end
+#
+#    args = args.collect { |t| eval_tree(context, t) }
+#
+#    return target.call(context, args) if target.is_a?(Subaltern::Block)
+#
+#    bounce(target, method)
+#
+#    target.send(method, *args)
+#  end
+#
+#  def self.is_javascripty_hash_lookup?(target, method, args)
+#
+#    target.is_a?(Hash) &&
+#    args.empty? &&
+#    ( ! WHITELIST[Hash].include?(method)) &&
+#    target.has_key?(method)
+#  end
+
+  def self.eval_send(context, tree)
+
+    funcname = tree.children[1]
+
+    args = tree.children[2..-1]
+    args = args.collect { |a| eval_tree(context, a) } if args
+
+    if tree.children.first
       #
-      # function with a block
+      # method call
 
-      con = Context.new(context, '__block' => Block.new(tree[2..-1]))
-
-      eval_call(con, tree[1])
+      target = eval_tree(context, tree.children.first)
+      target.send(funcname.to_s, *args)
 
     else
       #
-      # method with a block
+      # no target, var lookup or function call
 
-      target = eval_tree(context, tree[1][1])
-      method = tree[1][2]
+      func = context[funcname]
 
-      bounce(target, method)
-
-      method_args = tree[1][3..-1].collect { |t| eval_tree(context, t) }
-      block = Block.new(tree[2..-1])
-
-      command = nil
-
-      result = target.send(method, *method_args) { |*args|
-        begin
-          block.call(context, args)
-        rescue Command => c
-          case c.name
-            when 'break' then break c
-            when 'next' then next c
-            else raise c
-          end
-        end
-      }
-
-      Command.narrow(result)
+      if func.is_a?(Function)
+        func.call(context, args)
+      elsif args.empty?
+        func
+      else
+        raise UndefinedMethodError.new("'#{funcname}' is not a function")
+      end
     end
   end
 
-  def self.eval_yield(context, tree)
+  def self.eval_irange(context, tree)
 
-    args = tree[1..-1].collect { |t| eval_tree(context, t) }
+    a = eval_tree(context, tree.children[0])
+    b = eval_tree(context, tree.children[1])
 
-    context['__block'].call(context, args)
+    a..b
   end
 
-  def self.eval_break(context, tree)
+  def self.eval_lvasgn(context, tree)
 
-    raise(
-      Command.new('break', tree[1..-1].collect { |t| eval_tree(context, t) }))
+    context[tree.children.first] = eval_tree(context, tree.children.last)
   end
 
-  def self.eval_next(context, tree)
+  def self.eval_lvar(context, tree)
 
-    raise(
-      Command.new('next', tree[1..-1].collect { |t| eval_tree(context, t) }))
+    context[tree.children.first]
   end
 
-  def self.eval_if(context, tree)
+  def self.eval_regexp(context, tree)
 
-    if eval_tree(context, tree[1])
-      eval_tree(context, tree[2])
-    elsif tree[3]
-      eval_tree(context, tree[3])
-    end
+    str = tree.children.first.children.first
+
+    opts = tree.children.last.children
+    options = 0
+    options |= Regexp::EXTENDED if opts.include?(:x)
+    options |= Regexp::MULTILINE if opts.include?(:m)
+    options |= Regexp::IGNORECASE if opts.include?(:i)
+
+    Regexp.new(str, options)
+  end
+
+  def self.eval_return(context, tree)
+
+    raise(Return.new(eval_tree(context, tree.children.first)))
+  end
+
+  def self.eval_array(context, tree)
+
+    tree.children.collect { |t| eval_tree(context, t) }
+  end
+
+  def self.eval_hash(context, tree)
+
+    tree.children.inject({}) { |h, t|
+      h[eval_tree(context, t.children.first)] =
+        eval_tree(context, t.children.last)
+      h
+    }
+  end
+
+  def self.eval_dstr(context, tree)
+
+    tree.children.collect { |t| eval_tree(context, t) }.join
   end
 
   def self.eval_or(context, tree)
 
-    tree[1..-1].each { |t|
-      result = eval_tree(context, t)
-      return result if result
-    }
+    tree.children.each do |t|
+      if r = eval_tree(context, t); return true; end
+    end
+
+    false
   end
 
   def self.eval_and(context, tree)
 
-    tree[1..-1].inject(nil) { |_, t|
-
-      current = eval_tree(context, t)
-
-      return current unless current
-
-      current
-    }
-  end
-
-  def self.eval_case(context, tree)
-
-    value = eval_tree(context, tree[1])
-    whens = tree[2..-1].select { |t| t[0] == :when }
-    the_else = (tree[2..-1] - whens).first
-
-    whens.each do |w|
-
-      eval_tree(context, w[1]).each do |v|
-
-        return eval_tree(context, w[2]) if v === value
-      end
+    tree.children.each do |t|
+      unless r = eval_tree(context, t); return false; end
     end
 
-    the_else ? eval_tree(context, the_else) : nil
+    true
   end
 
-  def self.eval_while(context, tree)
+  def self.eval_const(context, tree)
 
-    result = while eval_tree(context, tree[1])
+    parent = Kernel
+    parent = eval_tree(context, tree.children.first) if tree.children.first
 
-      begin
-        eval_tree(context, tree[2])
-      rescue Command => c
-        case c.name
-          when 'break' then break c
-          when 'next' then next c
-          else raise c
-        end
-      end
-    end
+    const = parent.const_get(tree.children.last)
 
-    Command.narrow(result)
+    return const if WHITELISTED_CONSTANTS.include?(const.to_s)
+
+    raise AccessError.new("no access to constant (#{const.to_s})")
   end
 
-  def self.eval_until(context, tree)
+#  def self.eval_block(context, tree)
+#
+#    #tree.children.each { |t| eval_tree(context, t) }.last
+#    p tree
+#    exit 0
+#  end
 
-    result = until eval_tree(context, tree[1])
-
-      begin
-        eval_tree(context, tree[2])
-      rescue Command => c
-        case c.name
-          when 'break' then break *c.args
-          when 'next' then next *c.args
-          else raise c
-        end
-      end
-    end
-
-    Command.narrow(result)
-  end
-
-  def self.eval_for(context, tree)
-
-    values = eval_tree(context, tree[1])
-    block = Block.new(tree[2..-1])
-
-    values.each { |v| block.call(context, [ v ], false) }
-  end
-
-  def self.eval_rescue(context, tree)
-
-    Subaltern.eval_tree(context, tree[2][2])
-  end
+#  def self.eval_evstr(context, tree)
+#
+#    eval_tree(context, tree[1])
+#  end
+#
+#  def self.eval_xstr(context, tree)
+#
+#    raise AccessError.new("no backquoting allowed (#{tree[1]})")
+#  end
+#
+#  def self.eval_dxstr(context, tree)
+#
+#    raise AccessError.new("no backquoting allowed (#{tree[1]})")
+#  end
+#
+#  def self.eval_gvar(context, tree)
+#
+#    raise AccessError.new("no global variables (#{tree[1]})")
+#  end
+#
+#  def self.eval_colon2(context, tree)
+#
+#    raise AccessError.new("no access to constants (#{tree[1]})")
+#  end
+#
+#  def self.eval_iter(context, tree)
+#
+#    if tree[1][1] == nil
+#      #
+#      # function with a block
+#
+#      con = Context.new(context, '__block' => Block.new(tree[2..-1]))
+#
+#      eval_call(con, tree[1])
+#
+#    else
+#      #
+#      # method with a block
+#
+#      target = eval_tree(context, tree[1][1])
+#      method = tree[1][2]
+#
+#      bounce(target, method)
+#
+#      method_args = tree[1][3..-1].collect { |t| eval_tree(context, t) }
+#      block = Block.new(tree[2..-1])
+#
+#      command = nil
+#
+#      result = target.send(method, *method_args) { |*args|
+#        begin
+#          block.call(context, args)
+#        rescue Command => c
+#          case c.name
+#            when 'break' then break c
+#            when 'next' then next c
+#            else raise c
+#          end
+#        end
+#      }
+#
+#      Command.narrow(result)
+#    end
+#  end
+#
+#  def self.eval_yield(context, tree)
+#
+#    args = tree[1..-1].collect { |t| eval_tree(context, t) }
+#
+#    context['__block'].call(context, args)
+#  end
+#
+#  def self.eval_break(context, tree)
+#
+#    raise(
+#      Command.new('break', tree[1..-1].collect { |t| eval_tree(context, t) }))
+#  end
+#
+#  def self.eval_next(context, tree)
+#
+#    raise(
+#      Command.new('next', tree[1..-1].collect { |t| eval_tree(context, t) }))
+#  end
+#
+#  def self.eval_if(context, tree)
+#
+#    if eval_tree(context, tree[1])
+#      eval_tree(context, tree[2])
+#    elsif tree[3]
+#      eval_tree(context, tree[3])
+#    end
+#  end
+#
+#  def self.eval_case(context, tree)
+#
+#    value = eval_tree(context, tree[1])
+#    whens = tree[2..-1].select { |t| t[0] == :when }
+#    the_else = (tree[2..-1] - whens).first
+#
+#    whens.each do |w|
+#
+#      eval_tree(context, w[1]).each do |v|
+#
+#        return eval_tree(context, w[2]) if v === value
+#      end
+#    end
+#
+#    the_else ? eval_tree(context, the_else) : nil
+#  end
+#
+#  def self.eval_while(context, tree)
+#
+#    result = while eval_tree(context, tree[1])
+#
+#      begin
+#        eval_tree(context, tree[2])
+#      rescue Command => c
+#        case c.name
+#          when 'break' then break c
+#          when 'next' then next c
+#          else raise c
+#        end
+#      end
+#    end
+#
+#    Command.narrow(result)
+#  end
+#
+#  def self.eval_until(context, tree)
+#
+#    result = until eval_tree(context, tree[1])
+#
+#      begin
+#        eval_tree(context, tree[2])
+#      rescue Command => c
+#        case c.name
+#          when 'break' then break *c.args
+#          when 'next' then next *c.args
+#          else raise c
+#        end
+#      end
+#    end
+#
+#    Command.narrow(result)
+#  end
+#
+#  def self.eval_for(context, tree)
+#
+#    values = eval_tree(context, tree[1])
+#    block = Block.new(tree[2..-1])
+#
+#    values.each { |v| block.call(context, [ v ], false) }
+#  end
+#
+#  def self.eval_rescue(context, tree)
+#
+#    Subaltern.eval_tree(context, tree[2][2])
+#  end
 end
 
