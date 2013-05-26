@@ -277,21 +277,23 @@ type unpack upcase upcase! upto zip !
     end
   end
 
-#  # Will raise an exception if calling that method on this target
-#  # is not whitelisted (or is blacklisted).
-#  #
-#  def self.bounce(target, method)
-#
-#    if BLACKLIST.include?(method.to_s)
-#      raise BlacklistedMethodError.new(target.class)
-#    end
-#    unless WHITELIST.keys.include?(target.class)
-#      raise NonWhitelistedClassError.new(target.class)
-#    end
-#    unless WHITELIST[target.class].include?(method.to_s)
-#      raise NonWhitelistedMethodError.new(target.class, method)
-#    end
-#  end
+  # Will raise an exception if calling that method on this target
+  # is not whitelisted (or is blacklisted).
+  #
+  def self.bounce(target, method)
+
+    return if target.is_a?(Subaltern::Block) && method == :call
+
+    if BLACKLIST.include?(method.to_s)
+      raise BlacklistedMethodError.new(target.class)
+    end
+    unless WHITELIST.keys.include?(target.class)
+      raise NonWhitelistedClassError.new(target.class)
+    end
+    unless WHITELIST[target.class].include?(method.to_s)
+      raise NonWhitelistedMethodError.new(target.class, method)
+    end
+  end
 
   #--
   # the eval_ methods
@@ -399,6 +401,9 @@ type unpack upcase upcase! upto zip !
       # method call
 
       target = eval_tree(context, tree.children.first)
+
+      bounce(target, funcname)
+
       target.send(funcname.to_s, *args)
 
     else
@@ -408,10 +413,17 @@ type unpack upcase upcase! upto zip !
       func = context[funcname]
 
       if func.is_a?(Function)
+
         func.call(context, args)
+
       elsif args.empty?
+        #
+        # "parser" just says (send nil :a) for both "a()" and "a"...
+
         func
+
       else
+
         raise UndefinedMethodError.new("'#{funcname}' is not a function")
       end
     end
