@@ -254,6 +254,25 @@ type unpack upcase upcase! upto zip !
     end
   end
 
+  class Block
+    # TODO: eventually merge with Function
+
+    def initialize(context, tree)
+
+      @context = context
+      @tree = tree
+    end
+
+    def call(context, args)
+
+      # TODO: bind args
+
+      Subaltern.eval_tree(
+        context,
+        @tree.children.last)
+    end
+  end
+
 #  #
 #  # Wrapper for Ruby blocks.
 #  #
@@ -509,12 +528,23 @@ type unpack upcase upcase! upto zip !
     raise AccessError.new("no access to constant (#{const.to_s})")
   end
 
-#  def self.eval_block(context, tree)
-#
-#    #tree.children.each { |t| eval_tree(context, t) }.last
-#    p tree
-#    exit 0
-#  end
+  def self.eval_block(context, tree)
+
+    con = Context.new(context, 'block' => Block.new(context, tree))
+
+    eval_tree(con, tree.children.first)
+  end
+
+  def self.eval_yield(context, tree)
+
+    block = context['block']
+
+    return LocalJumpError.new('no block given (yield)') unless block
+
+    args = tree.children.collect { |t| eval_tree(context, t) }
+
+    block.call(context, args)
+  end
 
 #  def self.eval_evstr(context, tree)
 #
@@ -579,13 +609,6 @@ type unpack upcase upcase! upto zip !
 #
 #      Command.narrow(result)
 #    end
-#  end
-#
-#  def self.eval_yield(context, tree)
-#
-#    args = tree[1..-1].collect { |t| eval_tree(context, t) }
-#
-#    context['__block'].call(context, args)
 #  end
 #
 #  def self.eval_break(context, tree)
