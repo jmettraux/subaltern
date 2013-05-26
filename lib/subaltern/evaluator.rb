@@ -228,7 +228,9 @@ type unpack upcase upcase! upto zip !
         else
           args.send(shift)
           con[name] =
-            if type == :optarg && cargs.empty?
+            if type == :blockarg
+              parent_context['block']
+            elsif type == :optarg && cargs.empty?
               Subaltern.eval_tree(parent_context, @optargs[name])
             else
               cargs.send(shift)
@@ -263,7 +265,12 @@ type unpack upcase upcase! upto zip !
       @tree = tree
     end
 
-    def call(context, args)
+    def call(*args)
+
+      do_call(@conext, args)
+    end
+
+    def do_call(context, args)
 
       # TODO: bind args
 
@@ -543,7 +550,7 @@ type unpack upcase upcase! upto zip !
 
     args = tree.children.collect { |t| eval_tree(context, t) }
 
-    block.call(context, args)
+    block.do_call(context, args)
   end
 
 #  def self.eval_evstr(context, tree)
