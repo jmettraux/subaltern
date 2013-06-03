@@ -25,7 +25,8 @@ an interpreter of a subset of Ruby, written in Ruby
   ]
 
   #s.add_runtime_dependency 'ruby_parser', '~> 3.0'
-  s.add_runtime_dependency 'parser', '1.3.4'
+  s.add_runtime_dependency 'parser', '1.4.1'
+  #s.add_runtime_dependency 'parser', '2.0.0.beta3'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
