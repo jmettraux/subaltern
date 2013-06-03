@@ -519,6 +519,33 @@ type unpack upcase upcase! upto zip !
     con = Context.new(context, 'block' => Block.new(context, tree))
 
     eval_tree(con, tree.children.first)
+
+#    # NB:
+#    #
+#    # $ bx ruby-parse -e "[].each(&block)"
+#    # (send
+#    #   (array) :each
+#    #   (block-pass
+#    #     (send nil :block)))
+#    #
+#    # $ bx ruby-parse -e "func { 1 }"
+#    # (block
+#    #   (send nil :func)
+#    #   (args)
+#    #   (int 1))
+#
+#    t = tree.children.first
+#    c = t.children.dup
+#    c << AST::Node.new(:blockarg, [ :block ])
+#    t = AST::Node.new(t.type, c)
+#    p t
+#
+#    eval_tree(con, t)
+  end
+
+  def self.eval_blockarg(context, tree)
+
+    nil
   end
 
   def self.eval_yield(context, tree)
