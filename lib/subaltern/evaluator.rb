@@ -181,7 +181,7 @@ type unpack upcase upcase! upto zip !
   #
   # Wrapper for function trees when stored in Context instances.
   #
-  class Function
+  class Procedure
 
     def initialize(tree)
 
@@ -205,13 +205,14 @@ type unpack upcase upcase! upto zip !
 
       con = Context.new(parent_context, {})
 
-      if
-        call_args.length > @args.length &&
-        ! @args.find { |a| a[0] == :restarg }
-      then
-        raise ArgumentError.new(
-          "wrong number of arguments (#{call_args.length} for #{@args.length})")
-      end
+      cal = call_args.length
+      cal -= 1 if call_args.last.is_a?(Block)
+      al = @args.length
+      al = 9999 if @args.find { |a| a[0] == :restarg }
+
+      raise ArgumentError.new(
+        "wrong number of arguments (#{call_args.length} for #{@args.length})"
+      ) if cal > al
 
       args = @args.dup
       cargs = call_args.dup
@@ -263,7 +264,10 @@ type unpack upcase upcase! upto zip !
     end
   end
 
-  class Block < Function
+  class Function < Procedure
+  end
+
+  class Block < Procedure
 
     def initialize(context, tree)
 
@@ -303,7 +307,7 @@ type unpack upcase upcase! upto zip !
   #
   def self.eval_tree(context, tree)
 
-    send("eval_#{tree.type}", context, tree)
+    send("eval_#{tree.type.to_s.gsub('-', '_')}", context, tree)
 
   rescue NoMethodError => nme
     puts '-' * 80
@@ -404,7 +408,13 @@ type unpack upcase upcase! upto zip !
 
       bounce(target, funcname)
 
-      target.send(funcname.to_s, *args)
+      if args.last.is_a?(Block)
+        blk = args.pop
+        block = Proc.new { |*a| blk.call(*a) }
+        target.send(funcname.to_s, *args, &block)
+      else
+        target.send(funcname.to_s, *args)
+      end
 
     else
       #
@@ -516,36 +526,37 @@ type unpack upcase upcase! upto zip !
 
   def self.eval_block(context, tree)
 
-    con = Context.new(context, 'block' => Block.new(context, tree))
+    #con = Context.new(context, 'block' => Block.new(context, tree))
+    #eval_tree(con, tree.children.first)
 
-    eval_tree(con, tree.children.first)
+    # NB:
+    #
+    # $ bx ruby-parse -e "[].each(&block)"
+    # (send
+    #   (array) :each
+    #   (block-pass
+    #     (send nil :block)))
+    #
+    # $ bx ruby-parse -e "func { 1 }"
+    # (block
+    #   (send nil :func)
+    #   (args)
+    #   (int 1))
 
-#    # NB:
-#    #
-#    # $ bx ruby-parse -e "[].each(&block)"
-#    # (send
-#    #   (array) :each
-#    #   (block-pass
-#    #     (send nil :block)))
-#    #
-#    # $ bx ruby-parse -e "func { 1 }"
-#    # (block
-#    #   (send nil :func)
-#    #   (args)
-#    #   (int 1))
-#
-#    t = tree.children.first
-#    c = t.children.dup
-#    c << AST::Node.new(:blockarg, [ :block ])
-#    t = AST::Node.new(t.type, c)
-#    p t
-#
-#    eval_tree(con, t)
+    bid = "block#{Time.now.to_f}".to_sym
+    con = Context.new(context, bid => Block.new(context, tree))
+
+    t = tree.children.first
+    c = t.children.dup
+    c << AST::Node.new(:'block-pass', [ AST::Node.new(:send, [ nil, bid ]) ])
+    t = AST::Node.new(t.type, c)
+
+    eval_tree(con, t)
   end
 
-  def self.eval_blockarg(context, tree)
+  def self.eval_block_pass(context, tree)
 
-    nil
+    eval_tree(context, tree.children.first)
   end
 
   def self.eval_yield(context, tree)
