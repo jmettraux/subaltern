@@ -385,13 +385,6 @@ type unpack upcase upcase! upto zip !
 #    target.send(method, *args)
 #  end
 #
-#  def self.is_javascripty_hash_lookup?(target, method, args)
-#
-#    target.is_a?(Hash) &&
-#    args.empty? &&
-#    ( ! WHITELIST[Hash].include?(method)) &&
-#    target.has_key?(method)
-#  end
 
   def self.eval_send(context, tree)
 
@@ -405,6 +398,10 @@ type unpack upcase upcase! upto zip !
       # method call
 
       target = eval_tree(context, tree.children.first)
+
+      if k = js_hash_lookup_key(target, funcname, args)
+        return target[k]
+      end
 
       bounce(target, funcname)
 
@@ -437,6 +434,18 @@ type unpack upcase upcase! upto zip !
         raise UndefinedMethodError.new("'#{funcname}' is not a function")
       end
     end
+  end
+
+  def self.js_hash_lookup_key(target, funcname, args)
+
+    return false if args.any?
+    return false unless target.is_a?(Hash)
+    return false if WHITELIST[Hash].include?(funcname.to_s)
+
+    return funcname if target.has_key?(funcname)
+    return funcname.to_s if target.has_key?(funcname.to_s)
+
+    false
   end
 
   def self.eval_irange(context, tree)
