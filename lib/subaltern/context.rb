@@ -66,6 +66,18 @@ module Subaltern
       @variables.has_key?(key)
     end
 
+    def lookup_block
+
+      _, block =
+        @variables.find { |k, v|
+          v.is_a?(Block) && k.to_s.match(/^block-[\d\.]+$/)
+        }
+
+      return block if block
+      return nil unless @parent
+      @parent.lookup_block
+    end
+
     # Eval a piece of Ruby code within this context.
     #
     def eval(source_or_tree)

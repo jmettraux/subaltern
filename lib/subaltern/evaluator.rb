@@ -235,7 +235,7 @@ type unpack upcase upcase! upto zip !
           args.send(shift)
           con[name] =
             if type == :blockarg
-              parent_context['block']
+              parent_context.lookup_block
             elsif type == :optarg && cargs.empty?
               Subaltern.eval_tree(parent_context, @optargs[name])
             else
@@ -543,7 +543,7 @@ type unpack upcase upcase! upto zip !
     #   (args)
     #   (int 1))
 
-    bid = "block#{Time.now.to_f}".to_sym
+    bid = "block-#{Time.now.to_f}".to_sym
     con = Context.new(context, bid => Block.new(context, tree))
 
     t = tree.children.first
@@ -561,7 +561,7 @@ type unpack upcase upcase! upto zip !
 
   def self.eval_yield(context, tree)
 
-    block = context['block']
+    block = context.lookup_block
 
     return LocalJumpError.new('no block given (yield)') unless block
 
